@@ -54,6 +54,10 @@ const createFile = async ({ ownerId, folderId, file }) => {
 
   if (!name) throw new BadRequestError("File name is missing.");
 
+  if (name.length > 255) {
+    throw new BadRequestError("File name must be 255 characters or fewer.");
+  }
+
   const nameKey = fileNameKey(name);
 
   await assertUniqueFileName(ownerId, folderKey, nameKey);

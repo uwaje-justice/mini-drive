@@ -33,7 +33,15 @@ const renderFolder = async (
 
 const upload = async (req, res, next) => {
   const folderId =
-    typeof req.body.folderId === "string" ? req.body.folderId : null;
+    typeof req.body?.folderId === "string" ? req.body.folderId : null;
+
+  if (req.uploadError) {
+    return renderFolder(req, res, {
+      folderId,
+      message: req.uploadError.message,
+      statusCode: req.uploadError.statusCode,
+    });
+  }
 
   try {
     await fileService.createFile({
