@@ -44,13 +44,17 @@ model Folder {
 }
 
 model File {
-  id         String   @id @default(cuid())
-  name       String
-  nameKey    String
-  storageKey String   @unique
-  mimeType   String
-  size       Int
-  ownerId    String
+  id                  String   @id @default(cuid())
+  name                String
+  nameKey             String
+  storageProvider     String   @default("local")
+  storageKey          String   @unique
+  storageUrl          String?
+  storageFormat       String?
+  storageResourceType String?
+  mimeType            String
+  size                Int
+  ownerId             String
   owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   folderId   String?
   folderKey  String
