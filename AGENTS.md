@@ -1,0 +1,109 @@
+# File Uploader
+
+A stripped-down personal storage app (mini Google Drive). Users register, log in,
+create folders, upload files, view file details, download files, and share folders
+through expiring links.
+
+## Stack
+
+- Node.js with Express 5, ES modules
+- EJS server-rendered views
+- Prisma 7 with PostgreSQL (`@prisma/adapter-pg`)
+- Passport.js with session-based auth
+- Multer for uploads
+- express-validator for input validation
+- Local filesystem for storage during development, cloud storage later
+
+## Folder structure
+
+```text
+file-uploader/
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── public/
+│   ├── css/
+│   └── js/
+├── src/
+│   ├── app.js
+│   ├── config/
+│   │   ├── passport.js
+│   │   └── session.js
+│   ├── lib/
+│   │   ├── env.js
+│   │   ├── prisma.js
+│   │   └── storage.js
+│   ├── middleware/
+│   │   ├── require-auth.js
+│   │   ├── upload.js
+│   │   ├── not-found.js
+│   │   └── error-handler.js
+│   ├── routes/
+│   │   ├── index.js
+│   │   ├── auth.js
+│   │   ├── folders.js
+│   │   ├── files.js
+│   │   └── share.js
+│   ├── controllers/
+│   │   ├── auth-controller.js
+│   │   ├── folder-controller.js
+│   │   ├── file-controller.js
+│   │   └── share-controller.js
+│   ├── services/
+│   │   ├── auth-service.js
+│   │   ├── folder-service.js
+│   │   ├── file-service.js
+│   │   └── share-service.js
+│   ├── validators/
+│   │   ├── auth-validator.js
+│   │   ├── folder-validator.js
+│   │   ├── file-validator.js
+│   │   └── share-validator.js
+│   └── views/
+│       ├── partials/
+│       ├── auth/
+│       ├── folders/
+│       ├── files/
+│       └── share/
+├── uploads/
+├── tests/
+├── .env.example
+├── .gitignore
+└── AGENTS.md
+```
+
+### What goes where
+
+- `prisma/` holds the schema and migrations. Prisma's expected location.
+- `public/` holds CSS, browser JS, and other static assets. Served by Express.
+- `src/app.js` creates the app, mounts middleware and routes, and starts the server.
+- `src/config/` holds one-time setup for Passport and sessions.
+- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapter.
+- `src/middleware/` holds request-level checks: auth guard, multer upload, 404, error handler.
+- `src/routes/` wires URLs to controllers only.
+- `src/controllers/` reads the request, calls a service, then renders or redirects.
+- `src/services/` holds database access and business rules. No Express code here.
+- `src/validators/` holds express-validator chains, one file per feature.
+- `src/views/` holds EJS pages grouped by feature, plus shared partials.
+- `uploads/` holds local files during development. Gitignored. Replaced by cloud storage later.
+- `tests/` holds unit tests for services.
+
+### Rules for this structure
+
+- Do not move static files into `src/`. They live in root `public/`.
+- Routes only wire URLs. Business logic goes in services.
+- Services must not import Express.
+- Swap storage by changing `src/lib/storage.js` only, not the controllers.
+
+## Commands
+
+- `npm run dev` starts the server with nodemon.
+- `npm start` starts the server.
+- `npm run prisma:migrate` creates a migration and regenerates the client.
+- `npm run prisma:generate` regenerates the Prisma client.
+- `npm run prisma:studio` opens Prisma Studio.
+
+## Notes
+
+- Keep `agent-notes.md` updated and never commit it.
+- `.env` is gitignored. Keep required variables listed in `.env.example`.
