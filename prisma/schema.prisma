@@ -33,10 +33,11 @@ model Folder {
   parentId  String?
   parentKey String
   parent    Folder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
-  children  Folder[] @relation("FolderChildren")
-  files     File[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  children   Folder[]    @relation("FolderChildren")
+  files      File[]
+  shareLinks ShareLink[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@unique([ownerId, parentKey, nameKey])
   @@index([ownerId, parentId])
@@ -58,4 +59,15 @@ model File {
 
   @@unique([ownerId, folderKey, nameKey])
   @@index([ownerId, folderId])
+}
+
+model ShareLink {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  folderId  String
+  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([folderId])
 }

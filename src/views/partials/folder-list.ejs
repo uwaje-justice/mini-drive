@@ -1,7 +1,8 @@
+<% const base = typeof folderBasePath !== "undefined" ? folderBasePath : "/folders"; %>
 <% if (folders.length > 0) { %>
   <ul>
     <% folders.forEach((folder) => { %>
-      <li><a href="/folders/<%= folder.id %>"><%= folder.name %></a></li>
+      <li><a href="<%= base %>/<%= folder.id %>"><%= folder.name %></a></li>
     <% }); %>
   </ul>
 <% } else { %>

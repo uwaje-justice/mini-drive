@@ -1,0 +1,18 @@
+<%- include("../partials/header", { title: `Shared: ${folder.name}` }) %>
+<% if (folder.id !== share.folderId) { %>
+  <p><a href="/share/<%= share.token %>/folders/<%= folder.parentId %>">Back</a></p>
+<% } %>
+<h1><%= folder.name %></h1>
+<p>This folder is shared with you. You can view and download its files.</p>
+
+<section>
+  <h2>Folders</h2>
+  <%- include("../partials/folder-list", { folders, folderBasePath: `/share/${share.token}/folders` }) %>
+</section>
+
+<section>
+  <h2>Files</h2>
+  <%- include("../partials/file-list", { files, fileBasePath: `/share/${share.token}/files`, fileDetails: false }) %>
+</section>
+
+<%- include("../partials/footer") %>

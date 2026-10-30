@@ -141,6 +141,12 @@ const collectFolderIds = async (ownerId, rootId) => {
   return [...ids];
 };
 
+const getSubtreeFolderIds = async (ownerId, rootId) => {
+  const folder = await getFolder(ownerId, rootId);
+
+  return collectFolderIds(ownerId, folder.id);
+};
+
 const deleteFolder = async (ownerId, id) => {
   const folder = await getFolder(ownerId, id);
   const folderIds = await collectFolderIds(ownerId, id);
@@ -172,6 +178,7 @@ export default {
   listRoot,
   getContents,
   getFolder,
+  getSubtreeFolderIds,
   createFolder,
   renameFolder,
   deleteFolder,

@@ -1,6 +1,6 @@
 import { matchedData, validationResult } from "express-validator";
 
-const validate = (view) => (req, res, next) => {
+const validate = (view, buildLocals) => async (req, res, next) => {
   const result = validationResult(req);
 
   if (!result.isEmpty()) {
@@ -9,7 +9,17 @@ const validate = (view) => (req, res, next) => {
       {},
     );
 
-    return res.status(422).render(view, { errors, values: req.body });
+    try {
+      const locals = buildLocals ? await buildLocals(req) : {};
+
+      return res.status(422).render(view, {
+        ...locals,
+        errors,
+        values: req.body,
+      });
+    } catch (error) {
+      return next(error);
+    }
   }
 
   req.matchedData = matchedData(req, { locations: ["body"] });

@@ -10,6 +10,7 @@ import indexRouter from "./routes/index.js";
 import authRouter from "./routes/auth.js";
 import foldersRouter from "./routes/folders.js";
 import filesRouter from "./routes/files.js";
+import shareRouter from "./routes/share.js";
 import notFound from "./middleware/not-found.js";
 import errorHandler from "./middleware/error-handler.js";
 
@@ -39,6 +40,7 @@ app.use(indexRouter);
 app.use("/auth", authRouter);
 app.use("/folders", foldersRouter);
 app.use("/files", filesRouter);
+app.use("/share", shareRouter);
 
 app.use(notFound);
 app.use(errorHandler);

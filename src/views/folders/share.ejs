@@ -1,0 +1,41 @@
+<%- include("../partials/header", { title: `Share ${folder.name}` }) %>
+<p><a href="/folders/<%= folder.id %>">Back</a></p>
+<h1>Share "<%= folder.name %>"</h1>
+<p>Anyone with a link can view this folder and its subfolders until it expires. They cannot upload, rename, or delete anything.</p>
+
+<% if (errors?.form) { %><p role="alert"><%= errors.form %></p><% } %>
+<form action="/folders/<%= folder.id %>/share" method="post" novalidate>
+  <div>
+    <label for="days">Link lasts (days)</label>
+    <input id="days" name="days" type="number" min="1" max="365" value="<%= values?.days ?? 7 %>" required>
+    <% if (errors?.days) { %><p role="alert"><%= errors.days %></p><% } %>
+  </div>
+  <button type="submit">Create link</button>
+</form>
+
+<section>
+  <h2>Links</h2>
+  <% if (links.length > 0) { %>
+    <ul>
+      <% links.forEach((link) => { %>
+        <% const expired = link.expiresAt.getTime() <= Date.now(); %>
+        <li>
+          <p>
+            <a href="<%= origin %>/share/<%= link.token %>"><%= origin %>/share/<%= link.token %></a>
+          </p>
+          <p>
+            <% if (expired) { %>Expired<% } else { %>Expires<% } %>
+            <%= link.expiresAt.toUTCString() %>
+          </p>
+          <form action="/folders/<%= folder.id %>/share/<%= link.id %>/revoke" method="post" onsubmit="return confirm('Revoke this link?')">
+            <button type="submit">Revoke</button>
+          </form>
+        </li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <p>No links yet.</p>
+  <% } %>
+</section>
+
+<%- include("../partials/footer") %>

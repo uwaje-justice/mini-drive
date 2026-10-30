@@ -7,6 +7,7 @@
 <p>
   <a href="/folders/new?parentId=<%= folder.id %>">New folder</a>
   <a href="/folders/<%= folder.id %>/edit">Rename</a>
+  <a href="/folders/<%= folder.id %>/share">Share</a>
 </p>
 
 <section>
@@ -34,7 +35,7 @@
   </form>
 </section>
 
-<form action="/folders/<%= folder.id %>/delete" method="post">
+<form action="/folders/<%= folder.id %>/delete" method="post" onsubmit="return confirm('Delete this folder and all its files?')">
   <button type="submit">Delete folder</button>
 </form>
 
