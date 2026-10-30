@@ -8,11 +8,11 @@ through expiring links.
 
 - Node.js with Express 5, ES modules
 - EJS server-rendered views
-- Prisma 7 with PostgreSQL (`@prisma/adapter-pg`)
+- Prisma 7 with SQLite for development (`@prisma/adapter-better-sqlite3`, `dev.db`)
 - Passport.js with session-based auth
 - Multer for uploads
 - express-validator for input validation
-- Local filesystem for storage during development, cloud storage later
+- Local filesystem for storage during development, Cloudinary later
 
 ## Folder structure
 
