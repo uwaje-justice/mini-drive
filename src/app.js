@@ -7,6 +7,8 @@ import sessionMiddleware from "./config/session.js";
 import passport from "./config/passport.js";
 import indexRouter from "./routes/index.js";
 import authRouter from "./routes/auth.js";
+import foldersRouter from "./routes/folders.js";
+import filesRouter from "./routes/files.js";
 import notFound from "./middleware/not-found.js";
 import errorHandler from "./middleware/error-handler.js";
 
@@ -33,6 +35,8 @@ app.use((req, res, next) => {
 
 app.use(indexRouter);
 app.use("/auth", authRouter);
+app.use("/folders", foldersRouter);
+app.use("/files", filesRouter);
 
 app.use(notFound);
 app.use(errorHandler);

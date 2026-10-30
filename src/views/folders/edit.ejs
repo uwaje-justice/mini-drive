@@ -1,0 +1,12 @@
+<%- include("../partials/header", { title: "Rename folder" }) %>
+<h1>Rename folder</h1>
+<% if (errors?.name) { %><p role="alert"><%= errors.name %></p><% } %>
+<form action="" method="post" novalidate>
+  <div>
+    <label for="name">Folder name</label>
+    <input id="name" name="name" type="text" maxlength="100" value="<%= values?.name ?? "" %>" required>
+  </div>
+  <button type="submit">Save</button>
+</form>
+<p><a href="/folders">Cancel</a></p>
+<%- include("../partials/footer") %>

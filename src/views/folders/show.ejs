@@ -1,0 +1,41 @@
+<%- include("../partials/header", { title: folder.name }) %>
+<p>
+  <a href="<%= folder.parentId ? `/folders/${folder.parentId}` : "/folders" %>">Back</a>
+</p>
+<h1><%= folder.name %></h1>
+
+<p>
+  <a href="/folders/new?parentId=<%= folder.id %>">New folder</a>
+  <a href="/folders/<%= folder.id %>/edit">Rename</a>
+</p>
+
+<section>
+  <h2>Folders</h2>
+  <%- include("../partials/folder-list", { folders }) %>
+</section>
+
+<section>
+  <h2>Files</h2>
+  <%- include("../partials/file-list", { files }) %>
+</section>
+
+<section>
+  <h2>Upload a file</h2>
+  <% if (typeof uploadError !== "undefined" && uploadError) { %>
+    <p role="alert"><%= uploadError %></p>
+  <% } %>
+  <form action="/files/upload" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="folderId" value="<%= folder.id %>">
+    <div>
+      <label for="file">File</label>
+      <input id="file" name="file" type="file" required>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+</section>
+
+<form action="/folders/<%= folder.id %>/delete" method="post">
+  <button type="submit">Delete folder</button>
+</form>
+
+<%- include("../partials/footer") %>

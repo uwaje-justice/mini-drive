@@ -1,0 +1,29 @@
+<%- include("../partials/header", { title: "My drive" }) %>
+<h1>My drive</h1>
+<p><a href="/folders/new">New folder</a></p>
+
+<section>
+  <h2>Folders</h2>
+  <%- include("../partials/folder-list", { folders }) %>
+</section>
+
+<section>
+  <h2>Files</h2>
+  <%- include("../partials/file-list", { files }) %>
+</section>
+
+<section>
+  <h2>Upload a file</h2>
+  <% if (typeof uploadError !== "undefined" && uploadError) { %>
+    <p role="alert"><%= uploadError %></p>
+  <% } %>
+  <form action="/files/upload" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="file">File</label>
+      <input id="file" name="file" type="file" required>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+</section>
+
+<%- include("../partials/footer") %>

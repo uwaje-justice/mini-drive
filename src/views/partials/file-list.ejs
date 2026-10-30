@@ -1,0 +1,12 @@
+<% if (files.length > 0) { %>
+  <ul>
+    <% files.forEach((file) => { %>
+      <li>
+        <span><%= file.name %></span>
+        <span>(<%= (file.size / 1024).toFixed(1) %> KB)</span>
+      </li>
+    <% }); %>
+  </ul>
+<% } else { %>
+  <p>No files here yet.</p>
+<% } %>

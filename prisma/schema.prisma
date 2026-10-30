@@ -13,6 +13,8 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  folders      Folder[]
+  files        File[]
 }
 
 model Session {
@@ -20,4 +22,40 @@ model Session {
   sid       String   @unique
   data      String
   expiresAt DateTime
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  nameKey   String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parentKey String
+  parent    Folder?  @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[] @relation("FolderChildren")
+  files     File[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerId, parentKey, nameKey])
+  @@index([ownerId, parentId])
+}
+
+model File {
+  id         String   @id @default(cuid())
+  name       String
+  nameKey    String
+  storageKey String   @unique
+  mimeType   String
+  size       Int
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  folderId   String?
+  folderKey  String
+  folder     Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([ownerId, folderKey, nameKey])
+  @@index([ownerId, folderId])
 }

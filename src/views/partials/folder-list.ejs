@@ -1,0 +1,9 @@
+<% if (folders.length > 0) { %>
+  <ul>
+    <% folders.forEach((folder) => { %>
+      <li><a href="/folders/<%= folder.id %>"><%= folder.name %></a></li>
+    <% }); %>
+  </ul>
+<% } else { %>
+  <p>No folders here yet.</p>
+<% } %>

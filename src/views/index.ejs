@@ -2,6 +2,7 @@
 <h1><%= message %></h1>
 <% if (currentUser) { %>
   <p>Signed in as <%= currentUser.email %>.</p>
+  <p><a href="/folders">Go to my drive</a></p>
 <% } else { %>
   <p>
     <a href="/auth/register">Create an account</a> or

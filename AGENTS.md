@@ -33,10 +33,13 @@ file-uploader/
 │   │   └── session.js
 │   ├── errors/
 │   │   ├── app-error.js
+│   │   ├── bad-request-error.js
 │   │   ├── conflict-error.js
 │   │   ├── env-error.js
 │   │   ├── not-found-error.js
+│   │   ├── payload-too-large-error.js
 │   │   ├── unauthorized-error.js
+│   │   ├── unsupported-media-type-error.js
 │   │   └── index.js
 │   ├── lib/
 │   │   ├── env.js
@@ -71,8 +74,18 @@ file-uploader/
 │   │   └── share-validator.js
 │   └── views/
 │       ├── partials/
+│       │   ├── header.ejs
+│       │   ├── footer.ejs
+│       │   ├── folder-list.ejs
+│       │   └── file-list.ejs
 │       ├── auth/
+│       │   ├── register.ejs
+│       │   └── login.ejs
 │       ├── folders/
+│       │   ├── index.ejs
+│       │   ├── show.ejs
+│       │   ├── new.ejs
+│       │   └── edit.ejs
 │       ├── files/
 │       ├── share/
 │       └── error.ejs
