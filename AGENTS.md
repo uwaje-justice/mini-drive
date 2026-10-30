@@ -12,7 +12,7 @@ through expiring links.
 - Passport.js with session-based auth
 - Multer for uploads
 - express-validator for input validation
-- Local filesystem for storage during development, Cloudinary later
+- Local filesystem for development and Cloudinary for remote storage
 
 ## Folder structure
 
@@ -48,7 +48,9 @@ file-uploader/
 │   │   ├── format-bytes.js
 │   │   ├── prisma.js
 │   │   ├── send-file.js
-│   │   └── storage.js
+│   │   ├── storage.js
+│   │   ├── storage-cloudinary.js
+│   │   └── storage-local.js
 │   ├── middleware/
 │   │   ├── require-auth.js
 │   │   ├── upload.js
@@ -112,14 +114,14 @@ file-uploader/
 - `src/app.js` creates the app, mounts middleware and routes, and starts the server.
 - `src/config/` holds one-time setup for Passport and sessions.
 - `src/errors/` holds custom error classes with status codes, thrown by services and middleware.
-- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapter, file signatures, download headers, and size formatting.
+- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapters, file signatures, download headers, and size formatting.
 - `src/middleware/` holds request-level checks: auth guard, multer upload, 404, error handler.
 - `src/routes/` wires URLs to controllers only.
 - `src/controllers/` reads the request, calls a service, then renders or redirects.
 - `src/services/` holds database access and business rules. No Express code here.
 - `src/validators/` holds express-validator chains, one file per feature.
 - `src/views/` holds EJS pages grouped by feature, plus shared partials.
-- `uploads/` holds local files during development. Gitignored. Replaced by cloud storage later.
+- `uploads/` holds local files when `STORAGE_DRIVER` is `local`. Gitignored.
 - `tests/` holds unit tests for services.
 
 ### Rules for this structure
@@ -127,7 +129,7 @@ file-uploader/
 - Do not move static files into `src/`. They live in root `public/`.
 - Routes only wire URLs. Business logic goes in services.
 - Services must not import Express.
-- Swap storage by changing `src/lib/storage.js` only, not the controllers.
+- Switch storage with `STORAGE_DRIVER`. Add a provider as a driver and register it in `src/lib/storage.js`; controllers stay unchanged.
 
 ## Commands
 
@@ -141,3 +143,7 @@ file-uploader/
 
 - Keep `agent-notes.md` updated and never commit it.
 - `.env` is gitignored. Keep required variables listed in `.env.example`.
+- `STORAGE_DRIVER` is `local` by default. Set it to `cloudinary` and fill the
+  Cloudinary variables to use remote storage.
+- Each `File` row records its own `storageProvider`, so local and Cloudinary
+  files can coexist.
