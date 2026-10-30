@@ -153,7 +153,13 @@ const deleteFolder = async (ownerId, id) => {
 
   const files = await prisma.file.findMany({
     where: { ownerId, folderId: { in: folderIds } },
-    select: { storageKey: true },
+    select: {
+      storageProvider: true,
+      storageKey: true,
+      storageFormat: true,
+      storageResourceType: true,
+      mimeType: true,
+    },
   });
 
   await prisma.$transaction([
@@ -164,7 +170,7 @@ const deleteFolder = async (ownerId, id) => {
   ]);
 
   const removals = await Promise.allSettled(
-    files.map((file) => storage.remove(file.storageKey)),
+    files.map((file) => storage.remove(file)),
   );
 
   for (const removal of removals) {

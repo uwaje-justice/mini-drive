@@ -1,44 +1,34 @@
-import { createReadStream as createFileStream } from "node:fs";
-import { mkdir, stat as readStat, unlink, writeFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
-import { basename, dirname, extname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import env from "./env.js";
+import localStorage from "./storage-local.js";
+import cloudinaryStorage from "./storage-cloudinary.js";
 
-const storageRoot = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "uploads",
-);
-
-const pathForKey = (key) => join(storageRoot, basename(key));
-
-const safeExtension = (fileName) => {
-  const extension = extname(fileName).toLowerCase();
-  return /^\.[a-z0-9]{1,10}$/.test(extension) ? extension : "";
+const drivers = {
+  local: localStorage,
+  cloudinary: cloudinaryStorage,
 };
 
-const save = async (file) => {
-  await mkdir(storageRoot, { recursive: true });
+const saveDriverName = env("STORAGE_DRIVER", "local").trim().toLowerCase();
+const saveDriver = drivers[saveDriverName];
 
-  const key = `${randomUUID()}${safeExtension(file.originalname)}`;
-  await writeFile(pathForKey(key), file.buffer);
+if (!saveDriver) {
+  throw new Error(`Unknown STORAGE_DRIVER: ${saveDriverName}`);
+}
 
-  return { key };
+if (saveDriverName === "cloudinary") cloudinaryStorage.assertConfigured();
+
+const driverFor = (file) => {
+  const provider = file.storageProvider ?? "local";
+  const driver = drivers[provider];
+
+  if (!driver) throw new Error(`Unknown storage provider: ${provider}`);
+
+  return driver;
 };
 
-const remove = async (key) => {
-  try {
-    await unlink(pathForKey(key));
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-  }
-};
+const save = (file, options) => saveDriver.save(file, options);
 
-const getPath = (key) => pathForKey(key);
+const remove = (file) => driverFor(file).remove(file);
 
-const stat = (key) => readStat(pathForKey(key));
+const open = (file) => driverFor(file).open(file);
 
-const createReadStream = (key) => createFileStream(getPath(key));
-
-export default { save, remove, getPath, stat, createReadStream };
+export default { save, remove, open };

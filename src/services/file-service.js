@@ -62,14 +62,14 @@ const createFile = async ({ ownerId, folderId, file }) => {
 
   await assertUniqueFileName(ownerId, folderKey, nameKey);
 
-  const saved = await storage.save(file);
+  const saved = await storage.save(file, { ownerId });
 
   try {
     return await prisma.file.create({
       data: {
         name,
         nameKey,
-        storageKey: saved.key,
+        ...saved,
         mimeType: file.mimetype,
         size: file.size,
         ownerId,
@@ -78,7 +78,7 @@ const createFile = async ({ ownerId, folderId, file }) => {
       },
     });
   } catch (error) {
-    await storage.remove(saved.key);
+    await storage.remove(saved);
 
     if (isUniqueViolation(error)) {
       throw new ConflictError(
@@ -96,7 +96,7 @@ const deleteFile = async (ownerId, id) => {
   await prisma.file.delete({ where: { id: file.id } });
 
   try {
-    await storage.remove(file.storageKey);
+    await storage.remove(file);
   } catch (error) {
     console.error(error);
   }
