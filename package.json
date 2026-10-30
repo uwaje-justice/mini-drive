@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "pretest": "DATABASE_URL=file:./test.db prisma migrate deploy",
+    "test": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest run",
+    "test:watch": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest",
     "dev": "nodemon ./src/server.js",
     "start": "node ./src/server.js",
     "prisma:migrate": "prisma migrate dev",
@@ -34,7 +37,9 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
-    "prisma": "^7.10.1"
+    "prisma": "^7.10.1",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.5"
   },
   "type": "module"
 }
