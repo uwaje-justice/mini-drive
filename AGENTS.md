@@ -42,8 +42,12 @@ file-uploader/
 │   │   ├── unsupported-media-type-error.js
 │   │   └── index.js
 │   ├── lib/
+│   │   ├── content-disposition.js
 │   │   ├── env.js
+│   │   ├── file-signature.js
+│   │   ├── format-bytes.js
 │   │   ├── prisma.js
+│   │   ├── send-file.js
 │   │   └── storage.js
 │   ├── middleware/
 │   │   ├── require-auth.js
@@ -85,9 +89,12 @@ file-uploader/
 │       │   ├── index.ejs
 │       │   ├── show.ejs
 │       │   ├── new.ejs
-│       │   └── edit.ejs
+│       │   ├── edit.ejs
+│       │   └── share.ejs
 │       ├── files/
+│       │   └── show.ejs
 │       ├── share/
+│       │   └── show.ejs
 │       └── error.ejs
 ├── uploads/
 ├── tests/
@@ -105,7 +112,7 @@ file-uploader/
 - `src/app.js` creates the app, mounts middleware and routes, and starts the server.
 - `src/config/` holds one-time setup for Passport and sessions.
 - `src/errors/` holds custom error classes with status codes, thrown by services and middleware.
-- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapter.
+- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapter, file signatures, download headers, and size formatting.
 - `src/middleware/` holds request-level checks: auth guard, multer upload, 404, error handler.
 - `src/routes/` wires URLs to controllers only.
 - `src/controllers/` reads the request, calls a service, then renders or redirects.
