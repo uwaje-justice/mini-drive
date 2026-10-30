@@ -1,7 +1,6 @@
 import express from "express";
 import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
-import env from "./lib/env.js";
 import formatBytes from "./lib/format-bytes.js";
 import cors from "cors";
 import sessionMiddleware from "./config/session.js";
@@ -45,9 +44,4 @@ app.use("/share", shareRouter);
 app.use(notFound);
 app.use(errorHandler);
 
-const port = env("PORT", 3000);
-
-app.listen(port, (err) => {
-  if (err) throw err;
-  console.log(`Server is running on port ${port}.`);
-});
+export default app;
