@@ -1,0 +1,22 @@
+<%- include("../partials/header", { title: "Register" }) %>
+<h1>Create account</h1>
+<form action="/auth/register" method="post" novalidate>
+  <div>
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="email" value="<%= values?.email ?? "" %>" required>
+    <% if (errors?.email) { %><p role="alert"><%= errors.email %></p><% } %>
+  </div>
+  <div>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" required>
+    <% if (errors?.password) { %><p role="alert"><%= errors.password %></p><% } %>
+  </div>
+  <div>
+    <label for="confirmPassword">Confirm password</label>
+    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required>
+    <% if (errors?.confirmPassword) { %><p role="alert"><%= errors.confirmPassword %></p><% } %>
+  </div>
+  <button type="submit">Register</button>
+</form>
+<p>Already have an account? <a href="/auth/login">Log in</a>.</p>
+<%- include("../partials/footer") %>

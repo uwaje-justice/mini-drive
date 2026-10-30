@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mini drive</title>
-</head>
-<body>
-  <h1><%= message %></h1>
-</body>
-</html>
+<%- include("partials/header", { title: "mini drive" }) %>
+<h1><%= message %></h1>
+<% if (currentUser) { %>
+  <p>Signed in as <%= currentUser.email %>.</p>
+<% } else { %>
+  <p>
+    <a href="/auth/register">Create an account</a> or
+    <a href="/auth/login">log in</a>.
+  </p>
+<% } %>
+<%- include("partials/footer") %>

@@ -31,6 +31,13 @@ file-uploader/
 │   ├── config/
 │   │   ├── passport.js
 │   │   └── session.js
+│   ├── errors/
+│   │   ├── app-error.js
+│   │   ├── conflict-error.js
+│   │   ├── env-error.js
+│   │   ├── not-found-error.js
+│   │   ├── unauthorized-error.js
+│   │   └── index.js
 │   ├── lib/
 │   │   ├── env.js
 │   │   ├── prisma.js
@@ -38,6 +45,7 @@ file-uploader/
 │   ├── middleware/
 │   │   ├── require-auth.js
 │   │   ├── upload.js
+│   │   ├── validate.js
 │   │   ├── not-found.js
 │   │   └── error-handler.js
 │   ├── routes/
@@ -66,7 +74,8 @@ file-uploader/
 │       ├── auth/
 │       ├── folders/
 │       ├── files/
-│       └── share/
+│       ├── share/
+│       └── error.ejs
 ├── uploads/
 ├── tests/
 ├── .env.example
@@ -82,6 +91,7 @@ file-uploader/
 - `public/` holds CSS, browser JS, and other static assets. Served by Express.
 - `src/app.js` creates the app, mounts middleware and routes, and starts the server.
 - `src/config/` holds one-time setup for Passport and sessions.
+- `src/errors/` holds custom error classes with status codes, thrown by services and middleware.
 - `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapter.
 - `src/middleware/` holds request-level checks: auth guard, multer upload, 404, error handler.
 - `src/routes/` wires URLs to controllers only.
