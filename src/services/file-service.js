@@ -36,6 +36,17 @@ const assertUniqueFileName = async (ownerId, folderKey, nameKey) => {
   }
 };
 
+const getFile = async (ownerId, id) => {
+  const file = await prisma.file.findFirst({
+    where: { id, ownerId },
+    include: { folder: { select: { id: true, name: true } } },
+  });
+
+  if (!file) throw new NotFoundError("File not found.");
+
+  return file;
+};
+
 const createFile = async ({ ownerId, folderId, file }) => {
   const folder = await assertFolder(ownerId, folderId);
   const folderKey = folder?.id ?? rootFolderKey;
@@ -75,4 +86,18 @@ const createFile = async ({ ownerId, folderId, file }) => {
   }
 };
 
-export default { createFile };
+const deleteFile = async (ownerId, id) => {
+  const file = await getFile(ownerId, id);
+
+  await prisma.file.delete({ where: { id: file.id } });
+
+  try {
+    await storage.remove(file.storageKey);
+  } catch (error) {
+    console.error(error);
+  }
+
+  return file;
+};
+
+export default { createFile, getFile, deleteFile };

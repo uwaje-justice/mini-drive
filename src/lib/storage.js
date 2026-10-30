@@ -1,5 +1,5 @@
 import { createReadStream as createFileStream } from "node:fs";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { mkdir, stat as readStat, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { basename, dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,6 +37,8 @@ const remove = async (key) => {
 
 const getPath = (key) => pathForKey(key);
 
+const stat = (key) => readStat(pathForKey(key));
+
 const createReadStream = (key) => createFileStream(getPath(key));
 
-export default { save, remove, getPath, createReadStream };
+export default { save, remove, getPath, stat, createReadStream };

@@ -1,0 +1,32 @@
+<%- include("../partials/header", { title: file.name }) %>
+<p>
+  <a href="<%= file.folderId ? `/folders/${file.folderId}` : "/folders" %>">Back</a>
+</p>
+<h1><%= file.name %></h1>
+
+<dl>
+  <dt>Size</dt>
+  <dd><%= formatBytes(file.size) %></dd>
+  <dt>Type</dt>
+  <dd><%= file.mimeType %></dd>
+  <dt>Uploaded</dt>
+  <dd><%= file.createdAt.toUTCString() %></dd>
+  <dt>Folder</dt>
+  <dd>
+    <% if (file.folder) { %>
+      <a href="/folders/<%= file.folder.id %>"><%= file.folder.name %></a>
+    <% } else { %>
+      My drive
+    <% } %>
+  </dd>
+</dl>
+
+<p>
+  <a href="/files/<%= file.id %>/download">Download</a>
+</p>
+
+<form action="/files/<%= file.id %>/delete" method="post" onsubmit="return confirm('Delete this file?')">
+  <button type="submit">Delete file</button>
+</form>
+
+<%- include("../partials/footer") %>

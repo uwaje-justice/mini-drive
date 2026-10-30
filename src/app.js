@@ -2,6 +2,7 @@ import express from "express";
 import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
 import env from "./lib/env.js";
+import formatBytes from "./lib/format-bytes.js";
 import cors from "cors";
 import sessionMiddleware from "./config/session.js";
 import passport from "./config/passport.js";
@@ -30,6 +31,7 @@ app.use(passport.session());
 
 app.use((req, res, next) => {
   res.locals.currentUser = req.user ?? null;
+  res.locals.formatBytes = formatBytes;
   next();
 });
 

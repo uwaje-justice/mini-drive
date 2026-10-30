@@ -7,5 +7,8 @@ const router = Router();
 
 router.use(requireAuth);
 router.post("/upload", uploadFile, fileController.upload);
+router.get("/:id", fileController.show);
+router.get("/:id/download", fileController.download);
+router.post("/:id/delete", fileController.remove);
 
 export default router;

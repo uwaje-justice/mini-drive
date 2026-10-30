@@ -1,9 +1,16 @@
+<% const base = typeof fileBasePath !== "undefined" ? fileBasePath : "/files"; %>
+<% const showDetails = typeof fileDetails !== "undefined" ? fileDetails : true; %>
 <% if (files.length > 0) { %>
   <ul>
     <% files.forEach((file) => { %>
       <li>
-        <span><%= file.name %></span>
-        <span>(<%= (file.size / 1024).toFixed(1) %> KB)</span>
+        <% if (showDetails) { %>
+          <a href="<%= base %>/<%= file.id %>"><%= file.name %></a>
+        <% } else { %>
+          <span><%= file.name %></span>
+        <% } %>
+        <span>(<%= formatBytes(file.size) %>)</span>
+        <a href="<%= base %>/<%= file.id %>/download">Download</a>
       </li>
     <% }); %>
   </ul>
