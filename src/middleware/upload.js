@@ -6,6 +6,7 @@ const maxFileSize = 5 * 1024 * 1024;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: maxFileSize },
+  defParamCharset: "utf8",
 });
 
 const uploadError = (statusCode, message) => ({ statusCode, message });
