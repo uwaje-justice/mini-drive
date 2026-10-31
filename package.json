@@ -1,44 +1,27 @@
 {
   "name": "file-uploader",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "api"
+  ],
   "scripts": {
-    "pretest": "DATABASE_URL=file:./test.db prisma migrate deploy",
-    "test": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest run",
-    "test:watch": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest",
-    "dev": "nodemon ./src/server.js",
-    "start": "node ./src/server.js",
-    "prisma:migrate": "prisma migrate dev",
-    "postprisma:migrate": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.1",
-    "@prisma/client": "^7.10.1",
-    "@quixo3/prisma-session-store": "^3.1.21",
-    "argon2": "^0.45.1",
-    "better-sqlite3": "^13.0.3",
-    "cloudinary": "^2.11.0",
-    "csrf-sync": "^4.2.1",
-    "dotenv": "^18.0.9",
-    "express": "^5.3.0",
-    "express-session": "^1.19.0",
-    "express-validator": "^7.3.2",
-    "multer": "^2.5.0",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0"
+    "dev": "npm run dev -w @file-uploader/api",
+    "dev:api": "npm run dev -w @file-uploader/api",
+    "start": "npm run start -w @file-uploader/api",
+    "test": "npm run test -w @file-uploader/api",
+    "test:watch": "npm run test:watch -w @file-uploader/api",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prisma:migrate": "npm run prisma:migrate -w @file-uploader/api",
+    "prisma:generate": "npm run prisma:generate -w @file-uploader/api",
+    "prisma:studio": "npm run prisma:studio -w @file-uploader/api"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
-    "playwright": "^1.64.1",
-    "prisma": "^7.10.1",
-    "supertest": "^7.3.1",
-    "vitest": "^5.0.5"
-  },
-  "type": "module"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "globals": "^17.13.0"
+  }
 }

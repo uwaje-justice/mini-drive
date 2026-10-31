@@ -3,8 +3,7 @@ node_modules/
 uploads/
 agent-notes.md
 *.log
-dev.db
-dev.db-journal
 *.db
 *.db-journal
-/src/generated/
+api/src/generated/
+client/dist/
