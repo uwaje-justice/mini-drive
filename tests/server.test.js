@@ -63,7 +63,7 @@ test("server.js starts the HTTP server", async () => {
   const body = await response.text();
 
   assert.equal(response.status, 200);
-  assert.match(body, /welcome to my mini drive/i);
+  assert.match(body, /Your files, in one calm place/i);
 
   child.kill();
   await once(child, "exit");

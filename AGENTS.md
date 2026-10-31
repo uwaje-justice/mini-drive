@@ -172,3 +172,7 @@ file-uploader/
   `folderPage`; file pages use `page`. Search uses `page`.
 - Uploads accept up to 10 files. Bad type, empty, long-name, or duplicate files
   are skipped with a per-file message; an oversized file rejects the batch.
+- Fonts come from `@fontsource-variable/roboto` and are served at `/fonts/roboto`.
+  Use `--font-family-base` from `public/css/tokens.css`.
+- Landing-only styles live in `public/css/landing.css`. Shared tokens and base
+  styles apply to every page.

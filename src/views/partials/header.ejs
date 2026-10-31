@@ -1,27 +1,70 @@
+<%
+  const isLanding = typeof landing !== "undefined" && landing;
+  const pageTitle = typeof title !== "undefined" ? title : "mini drive";
+  const pageDescription = typeof description !== "undefined"
+    ? description
+    : "A simple personal drive for files, folders, previews, and expiring share links.";
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="<%= pageDescription %>">
   <meta name="csrf-token" content="<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>">
-  <title><%= typeof title !== "undefined" ? title : "mini drive" %></title>
+  <title><%= pageTitle %></title>
+  <link rel="preload" href="/fonts/roboto/files/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/roboto/index.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <% if (isLanding) { %>
+    <link rel="stylesheet" href="/css/landing.css">
+  <% } %>
 </head>
-<body>
-  <header>
-    <nav>
-      <a href="/">mini drive</a>
-      <% if (typeof currentUser !== "undefined" && currentUser) { %>
-        <a href="/folders">My drive</a>
-        <a href="/search">Search</a>
-        <span><%= currentUser.email %></span>
-        <form action="/auth/logout" method="post">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button type="submit">Log out</button>
-        </form>
-      <% } else { %>
-        <a href="/auth/login">Log in</a>
-        <a href="/auth/register">Register</a>
+<body<% if (isLanding) { %> class="landing-page"<% } %>>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="/" aria-label="mini drive home">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <path fill="#fbbc04" d="M3.5 9.5A3.5 3.5 0 0 1 7 6h5.8l2.8 3H25a3.5 3.5 0 0 1 3.5 3.5v10A3.5 3.5 0 0 1 25 26H7a3.5 3.5 0 0 1-3.5-3.5v-13Z"/>
+          <path fill="#0b57d0" d="M3.5 13h25v9.5A3.5 3.5 0 0 1 25 26H7a3.5 3.5 0 0 1-3.5-3.5V13Z"/>
+          <path fill="#ffffff" opacity=".22" d="M3.5 13h25v2.2h-25z"/>
+        </svg>
+        <span>mini drive</span>
+      </a>
+
+      <% if (isLanding) { %>
+        <nav class="site-nav site-nav--landing" aria-label="Landing page">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#privacy">Privacy</a>
+        </nav>
+      <% } else if (typeof currentUser !== "undefined" && currentUser) { %>
+        <nav class="site-nav" aria-label="Main">
+          <a href="/folders">My drive</a>
+          <a href="/search">Search</a>
+        </nav>
       <% } %>
-    </nav>
+
+      <div class="site-actions">
+        <% if (typeof currentUser !== "undefined" && currentUser) { %>
+          <% if (isLanding) { %>
+            <a class="button button--primary button--small" href="/folders">Open my drive</a>
+          <% } %>
+          <div class="site-user">
+            <span class="site-user__email"><%= currentUser.email %></span>
+            <form class="logout-form" action="/auth/logout" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="text-button" type="submit">Log out</button>
+            </form>
+          </div>
+        <% } else { %>
+          <a class="site-link" href="/auth/login">Log in</a>
+          <a class="button button--primary button--small" href="/auth/register">Create account</a>
+        <% } %>
+      </div>
+    </div>
   </header>
-  <main>
+  <main id="main">

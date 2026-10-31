@@ -21,6 +21,13 @@ const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
+app.use(
+  "/fonts/roboto",
+  express.static(
+    join(__dirname, "..", "node_modules", "@fontsource-variable", "roboto"),
+    { maxAge: "30d" },
+  ),
+);
 app.use(express.static(join(__dirname, "..", "public")));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());

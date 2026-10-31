@@ -14,7 +14,7 @@ test("home page welcomes guests", async () => {
   const response = await createAgent().get("/");
 
   assert.equal(response.status, 200);
-  assert.match(response.text, /welcome to my mini drive/i);
+  assert.match(response.text, /Your files, in one calm place/i);
   assert.match(response.text, /\/auth\/register/);
   assert.match(response.text, /\/auth\/login/);
 });
@@ -58,6 +58,7 @@ test("registration creates a user, hashes the password, and starts a session", a
   assert.ok(sessions > 0);
   assert.equal(page.status, 200);
   assert.match(page.text, new RegExp(user.email));
+  assert.match(page.text, /Open my drive/);
   assert.match(page.text, /\/folders/);
 
   const loginPage = await client.get("/auth/login");
