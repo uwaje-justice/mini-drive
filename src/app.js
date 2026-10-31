@@ -12,6 +12,7 @@ import foldersRouter from "./routes/folders.js";
 import filesRouter from "./routes/files.js";
 import shareRouter from "./routes/share.js";
 import searchRouter from "./routes/search.js";
+import apiRouter from "./api/routes/index.js";
 import notFound from "./middleware/not-found.js";
 import errorHandler from "./middleware/error-handler.js";
 import { csrfProtection, attachCsrfToken } from "./middleware/csrf.js";
@@ -41,8 +42,11 @@ app.use(passport.session());
 app.use(csrfProtection);
 app.use(attachCsrfToken);
 
+app.use("/api", apiRouter);
+
 app.use((req, res, next) => {
   res.locals.currentUser = req.user ?? null;
+  res.locals.currentPath = req.path;
   res.locals.formatBytes = formatBytes;
   res.locals.isPreviewable = isPreviewable;
   res.locals.query = req.query;

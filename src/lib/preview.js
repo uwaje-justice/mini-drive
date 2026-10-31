@@ -1,12 +1,15 @@
-const previewableTypes = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "application/pdf",
-  "text/plain",
+const previewKinds = new Map([
+  ["image/png", "image"],
+  ["image/jpeg", "image"],
+  ["image/webp", "image"],
+  ["image/gif", "image"],
+  ["application/pdf", "pdf"],
+  ["text/plain", "text"],
 ]);
 
-const isPreviewable = (mimeType) => previewableTypes.has(mimeType);
+const getPreviewKind = (mimeType) => previewKinds.get(mimeType) ?? null;
+
+const isPreviewable = (mimeType) => getPreviewKind(mimeType) !== null;
 
 export default isPreviewable;
+export { getPreviewKind };

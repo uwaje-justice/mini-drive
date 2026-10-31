@@ -166,6 +166,112 @@ export const downloadSharedFile = (client, token, fileId) =>
     .buffer(true)
     .parse(parseBinary);
 
+export const getApiSession = async (client) => {
+  const response = await client.get("/api/auth/session");
+
+  if (response.status !== 200) {
+    throw new Error(`API session failed with ${response.status}.`);
+  }
+
+  return response.body.data;
+};
+
+export const getApiCsrfToken = async (client) =>
+  (await getApiSession(client)).csrfToken;
+
+export const sendApi = async (client, method, path, body = {}) => {
+  const token = await getApiCsrfToken(client);
+
+  return client[method](path).set("x-csrf-token", token).send(body);
+};
+
+export const registerApiUser = async (client, label = "api-user") => {
+  const email = uniqueEmail(label);
+  const response = await sendApi(client, "post", "/api/auth/register", {
+    email,
+    password: testPassword,
+    confirmPassword: testPassword,
+  });
+
+  if (response.status !== 201) {
+    throw new Error(`API registration failed with ${response.status}.`);
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) throw new Error("API-registered user was not saved.");
+
+  return user;
+};
+
+export const createApiFolder = async (
+  client,
+  name,
+  parentId = null,
+) => {
+  const response = await sendApi(client, "post", "/api/folders", {
+    name,
+    ...(parentId ? { parentId } : {}),
+  });
+
+  if (response.status !== 201) {
+    throw new Error(`API folder creation failed with ${response.status}.`);
+  }
+
+  return response.body.data.folder;
+};
+
+export const uploadApiFiles = async (
+  client,
+  { folderId = null, files },
+) => {
+  const token = await getApiCsrfToken(client);
+  const agent = client
+    .post("/api/files")
+    .set("x-csrf-token", token);
+
+  if (folderId) agent.field("folderId", folderId);
+
+  for (const file of files) {
+    agent.attach("files", file.buffer, {
+      filename: file.name,
+      contentType: file.contentType ?? "application/octet-stream",
+    });
+  }
+
+  return agent;
+};
+
+export const uploadApiFile = async (client, { folderId = null, ...file }) =>
+  uploadApiFiles(client, { folderId, files: [file] });
+
+export const createApiShareLink = async (client, folder, days = 7) => {
+  const response = await sendApi(
+    client,
+    "post",
+    `/api/folders/${folder.id}/shares`,
+    { days },
+  );
+
+  if (response.status !== 201) {
+    throw new Error(`API share creation failed with ${response.status}.`);
+  }
+
+  return response.body.data.link;
+};
+
+export const downloadApiFile = (client, fileId) =>
+  client
+    .get(`/api/files/${fileId}/download`)
+    .buffer(true)
+    .parse(parseBinary);
+
+export const downloadApiSharedFile = (client, token, fileId) =>
+  client
+    .get(`/api/public/shares/${token}/files/${fileId}/download`)
+    .buffer(true)
+    .parse(parseBinary);
+
 export const cleanupUser = async (user) => {
   if (!user) return;
 

@@ -14,6 +14,8 @@ const { csrfSynchronisedProtection, generateToken } = csrfSync({
 
 export const csrfProtection = csrfSynchronisedProtection;
 
+export const generateCsrfToken = (req) => generateToken(req);
+
 export const attachCsrfToken = (req, res, next) => {
   res.locals.csrfToken = generateToken(req);
   next();
