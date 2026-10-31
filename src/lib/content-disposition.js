@@ -7,7 +7,7 @@ const encodeName = (name) =>
     (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
   );
 
-const contentDisposition = (name) =>
-  `attachment; filename="${safeFallback(name)}"; filename*=UTF-8''${encodeName(name)}`;
+const contentDisposition = (name, type = "attachment") =>
+  `${type}; filename="${safeFallback(name)}"; filename*=UTF-8''${encodeName(name)}`;
 
 export default contentDisposition;

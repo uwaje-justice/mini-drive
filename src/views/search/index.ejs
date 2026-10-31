@@ -1,0 +1,37 @@
+<%- include("../partials/header", { title: "Search" }) %>
+<h1>Search</h1>
+
+<form action="/search" method="get">
+  <div>
+    <label for="q">Name</label>
+    <input id="q" name="q" type="search" value="<%= searchQuery %>" maxlength="100">
+  </div>
+  <button type="submit">Search</button>
+</form>
+
+<% if (searchQuery) { %>
+  <p><%= results.length %> of <%= pagination.total %> results for "<%= searchQuery %>"</p>
+
+  <% if (results.length === 0) { %>
+    <p>No folders or files match that name.</p>
+  <% } else { %>
+    <ul>
+      <% results.forEach((result) => { %>
+        <li>
+          <a href="<%= result.type === "folder" ? `/folders/${result.id}` : `/files/${result.id}` %>">
+            <%= result.name %>
+          </a>
+          <span><%= result.type %></span>
+          <span><%= result.path %></span>
+          <% if (result.size !== null) { %>
+            <span><%= formatBytes(result.size) %></span>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+
+  <%- include("../partials/pagination", { pagination, paramName: "page", basePath: "/search", label: "Search pages" }) %>
+<% } %>
+
+<%- include("../partials/footer") %>

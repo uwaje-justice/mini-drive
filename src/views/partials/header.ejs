@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>">
   <title><%= typeof title !== "undefined" ? title : "mini drive" %></title>
 </head>
 <body>
@@ -11,8 +12,10 @@
       <a href="/">mini drive</a>
       <% if (typeof currentUser !== "undefined" && currentUser) { %>
         <a href="/folders">My drive</a>
+        <a href="/search">Search</a>
         <span><%= currentUser.email %></span>
         <form action="/auth/logout" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button type="submit">Log out</button>
         </form>
       <% } else { %>

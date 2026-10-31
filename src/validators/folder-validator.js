@@ -14,4 +14,11 @@ const folderRules = [
     .withMessage("Parent folder is invalid."),
 ];
 
-export default { folderRules };
+const moveRules = [
+  body("parentId")
+    .optional({ values: "falsy" })
+    .isString()
+    .withMessage("Parent folder is invalid."),
+];
+
+export default { folderRules, moveRules };

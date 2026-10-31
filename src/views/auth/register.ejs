@@ -1,6 +1,7 @@
 <%- include("../partials/header", { title: "Register" }) %>
 <h1>Create account</h1>
 <form action="/auth/register" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div>
     <label for="email">Email</label>
     <input id="email" name="email" type="email" autocomplete="email" value="<%= values?.email ?? "" %>" required>

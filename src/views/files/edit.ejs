@@ -1,0 +1,39 @@
+<%- include("../partials/header", { title: `Edit ${file.name}` }) %>
+<p><a href="/files/<%= file.id %>">Back</a></p>
+<h1>Edit file</h1>
+
+<section>
+  <h2>Rename</h2>
+  <% if (errors?.name) { %><p role="alert"><%= errors.name %></p><% } %>
+  <form action="" method="post" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="folderId" value="<%= values?.folderId ?? "" %>">
+    <div>
+      <label for="name">File name</label>
+      <input id="name" name="name" type="text" maxlength="255" value="<%= values?.name ?? "" %>" required>
+    </div>
+    <button type="submit">Save name</button>
+  </form>
+</section>
+
+<section>
+  <h2>Move</h2>
+  <% if (errors?.folderId) { %><p role="alert"><%= errors.folderId %></p><% } %>
+  <form action="/files/<%= file.id %>/move" method="post" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="name" value="<%= values?.name ?? file.name %>">
+    <div>
+      <label for="folderId">Destination</label>
+      <select id="folderId" name="folderId">
+        <% targets.forEach((target) => { %>
+          <option value="<%= target.id ?? "" %>" <%= String(target.id ?? "") === String(values?.folderId ?? "") ? "selected" : "" %>>
+            <%= `${"— ".repeat(target.depth)}${target.path}` %>
+          </option>
+        <% }); %>
+      </select>
+    </div>
+    <button type="submit">Move</button>
+  </form>
+</section>
+
+<%- include("../partials/footer") %>

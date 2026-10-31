@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { Readable } from "node:stream";
 import { v2 as cloudinary } from "cloudinary";
 import env from "./env.js";
 
@@ -97,18 +98,35 @@ const remove = async (file) => {
 const open = async (file) => {
   configure();
 
-  const redirectUrl = cloudinary.utils.private_download_url(
+  const downloadUrl = cloudinary.utils.private_download_url(
     file.storageKey,
     file.storageFormat ?? "",
     {
       resource_type: resourceTypeFor(file),
       type: "authenticated",
       expires_at: Math.floor(Date.now() / 1000) + signedUrlLifetimeSeconds,
-      attachment: true,
+      attachment: false,
     },
   );
 
-  return { redirectUrl };
+  const response = await fetch(downloadUrl);
+
+  if (response.status === 404) {
+    const error = new Error("File is missing.");
+    error.code = "ENOENT";
+    throw error;
+  }
+
+  if (!response.ok || !response.body) {
+    throw new Error(`Cloudinary download failed (${response.status}).`);
+  }
+
+  const contentLength = response.headers.get("content-length");
+
+  return {
+    size: contentLength === null ? null : Number(contentLength),
+    stream: Readable.fromWeb(response.body),
+  };
 };
 
 export default { assertConfigured, save, remove, open };

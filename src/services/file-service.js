@@ -23,9 +23,14 @@ const assertFolder = async (ownerId, folderId) => {
   return folder;
 };
 
-const assertUniqueFileName = async (ownerId, folderKey, nameKey) => {
+const assertUniqueFileName = async (ownerId, folderKey, nameKey, excludeId) => {
   const existing = await prisma.file.findFirst({
-    where: { ownerId, folderKey, nameKey },
+    where: {
+      ownerId,
+      folderKey,
+      nameKey,
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
     select: { id: true },
   });
 
@@ -90,6 +95,86 @@ const createFile = async ({ ownerId, folderId, file }) => {
   }
 };
 
+const createFiles = async ({ ownerId, folderId, files }) => {
+  const created = [];
+  const errors = [];
+
+  for (const file of files) {
+    try {
+      created.push(await createFile({ ownerId, folderId, file }));
+    } catch (error) {
+      if (!(error instanceof ConflictError || error instanceof BadRequestError)) {
+        throw error;
+      }
+
+      errors.push({
+        statusCode: error.statusCode,
+        message: `${file.originalname}: ${error.message}`,
+      });
+    }
+  }
+
+  return { created, errors };
+};
+
+const assertValidName = (name) => {
+  const trimmedName = name.trim();
+
+  if (!trimmedName) throw new BadRequestError("File name is missing.");
+
+  if (trimmedName.length > 255) {
+    throw new BadRequestError("File name must be 255 characters or fewer.");
+  }
+
+  return trimmedName;
+};
+
+const renameFile = async (ownerId, id, { name }) => {
+  const file = await getFile(ownerId, id);
+  const trimmedName = assertValidName(name);
+  const nameKey = fileNameKey(trimmedName);
+
+  await assertUniqueFileName(ownerId, file.folderKey, nameKey, file.id);
+
+  try {
+    return await prisma.file.update({
+      where: { id: file.id },
+      data: { name: trimmedName, nameKey },
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ConflictError(
+        "A file with this name already exists in this folder.",
+      );
+    }
+
+    throw error;
+  }
+};
+
+const moveFile = async (ownerId, id, { folderId }) => {
+  const file = await getFile(ownerId, id);
+  const folder = await assertFolder(ownerId, folderId);
+  const folderKey = folder?.id ?? rootFolderKey;
+
+  await assertUniqueFileName(ownerId, folderKey, file.nameKey, file.id);
+
+  try {
+    return await prisma.file.update({
+      where: { id: file.id },
+      data: { folderId: folder?.id ?? null, folderKey },
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ConflictError(
+        "A file with this name already exists in this folder.",
+      );
+    }
+
+    throw error;
+  }
+};
+
 const deleteFile = async (ownerId, id) => {
   const file = await getFile(ownerId, id);
 
@@ -104,4 +189,11 @@ const deleteFile = async (ownerId, id) => {
   return file;
 };
 
-export default { createFile, getFile, deleteFile };
+export default {
+  createFile,
+  createFiles,
+  getFile,
+  renameFile,
+  moveFile,
+  deleteFile,
+};

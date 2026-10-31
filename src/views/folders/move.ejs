@@ -1,0 +1,20 @@
+<%- include("../partials/header", { title: `Move ${folder.name}` }) %>
+<p><a href="/folders/<%= folder.id %>">Back</a></p>
+<h1>Move folder</h1>
+<p>Choose a new parent for "<%= folder.name %>".</p>
+<% if (errors?.parentId) { %><p role="alert"><%= errors.parentId %></p><% } %>
+<form action="" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div>
+    <label for="parentId">Destination</label>
+    <select id="parentId" name="parentId">
+      <% targets.forEach((target) => { %>
+        <option value="<%= target.id ?? "" %>" <%= String(target.id ?? "") === String(values?.parentId ?? "") ? "selected" : "" %>>
+          <%= `${"— ".repeat(target.depth)}${target.path}` %>
+        </option>
+      <% }); %>
+    </select>
+  </div>
+  <button type="submit">Move</button>
+</form>
+<%- include("../partials/footer") %>

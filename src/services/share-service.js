@@ -55,7 +55,11 @@ const getValidShare = async (token) => {
   return share;
 };
 
-const getSharedContents = async (token, folderId) => {
+const getSharedContents = async (
+  token,
+  folderId,
+  { page, folderPage } = {},
+) => {
   const share = await getValidShare(token);
   const ownerId = share.folder.ownerId;
   const targetId = folderId ?? share.folderId;
@@ -66,7 +70,10 @@ const getSharedContents = async (token, folderId) => {
 
   if (!folderIds.includes(targetId)) throw shareNotFound();
 
-  const contents = await folderService.getContents(ownerId, targetId);
+  const contents = await folderService.getContents(ownerId, targetId, {
+    page,
+    folderPage,
+  });
 
   return { share, ...contents };
 };

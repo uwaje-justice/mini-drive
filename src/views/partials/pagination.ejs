@@ -1,0 +1,18 @@
+<% if (pagination.totalPages > 1) { %>
+  <%
+    const makeLink = (page) => {
+      const params = new URLSearchParams(typeof query !== "undefined" ? query : {});
+      params.set(paramName, page);
+      return `${basePath}?${params.toString()}`;
+    };
+  %>
+  <nav aria-label="<%= label %>">
+    <% if (pagination.hasPrevious) { %>
+      <a href="<%= makeLink(pagination.page - 1) %>">Previous</a>
+    <% } %>
+    <span>Page <%= pagination.page %> of <%= pagination.totalPages %></span>
+    <% if (pagination.hasNext) { %>
+      <a href="<%= makeLink(pagination.page + 1) %>">Next</a>
+    <% } %>
+  </nav>
+<% } %>

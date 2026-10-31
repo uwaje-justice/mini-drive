@@ -21,11 +21,24 @@
   </dd>
 </dl>
 
+<% if (isPreviewable(file.mimeType)) { %>
+  <section>
+    <h2>Preview</h2>
+    <% if (file.mimeType.startsWith("image/")) { %>
+      <img src="/files/<%= file.id %>/preview" alt="<%= file.name %>">
+    <% } else { %>
+      <iframe src="/files/<%= file.id %>/preview" title="Preview of <%= file.name %>"></iframe>
+    <% } %>
+  </section>
+<% } %>
+
 <p>
   <a href="/files/<%= file.id %>/download">Download</a>
+  <a href="/files/<%= file.id %>/edit">Rename or move</a>
 </p>
 
 <form action="/files/<%= file.id %>/delete" method="post" onsubmit="return confirm('Delete this file?')">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <button type="submit">Delete file</button>
 </form>
 

@@ -1,5 +1,7 @@
 import shareService from "../services/share-service.js";
 import sendFile from "../lib/send-file.js";
+import isPreviewable from "../lib/preview.js";
+import BadRequestError from "../errors/bad-request-error.js";
 
 const requestOrigin = (req) => `${req.protocol}://${req.get("host")}`;
 
@@ -43,12 +45,13 @@ const revoke = async (req, res) => {
 };
 
 const showPublicFolder = async (req, res) => {
-  const { share, folder, folders, files } = await shareService.getSharedContents(
+  const page = await shareService.getSharedContents(
     req.params.token,
     req.params.folderId,
+    { page: req.query.page, folderPage: req.query.folderPage },
   );
 
-  return res.render("share/show", { share, folder, folders, files });
+  return res.render("share/show", page);
 };
 
 const downloadPublicFile = async (req, res, next) => {
@@ -65,6 +68,25 @@ const downloadPublicFile = async (req, res, next) => {
   }
 };
 
+const previewPublicFile = async (req, res, next) => {
+  try {
+    const file = await shareService.getSharedFile(
+      req.params.token,
+      req.params.fileId,
+    );
+
+    if (!isPreviewable(file.mimeType)) {
+      throw new BadRequestError("This file type cannot be previewed.");
+    }
+
+    await sendFile(res, file, { inline: true });
+  } catch (error) {
+    if (res.headersSent) return console.error(error);
+
+    return next(error);
+  }
+};
+
 export default {
   show,
   loadSharePage,
@@ -72,4 +94,5 @@ export default {
   revoke,
   showPublicFolder,
   downloadPublicFile,
+  previewPublicFile,
 };

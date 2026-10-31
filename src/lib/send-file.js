@@ -3,7 +3,7 @@ import storage from "./storage.js";
 import contentDisposition from "./content-disposition.js";
 import NotFoundError from "../errors/not-found-error.js";
 
-const sendFile = async (res, file) => {
+const sendFile = async (res, file, { inline = false } = {}) => {
   let target;
 
   try {
@@ -14,24 +14,21 @@ const sendFile = async (res, file) => {
     throw error;
   }
 
-  if (target.redirectUrl) {
-    res.set({
-      "Cache-Control": "no-store",
-      "Referrer-Policy": "no-referrer",
-      "X-Content-Type-Options": "nosniff",
-    });
-
-    return res.redirect(302, target.redirectUrl);
-  }
-
-  res.set({
+  const headers = {
     "Content-Type": file.mimeType,
-    "Content-Length": target.size,
-    "Content-Disposition": contentDisposition(file.name),
+    "Content-Disposition": contentDisposition(
+      file.name,
+      inline ? "inline" : "attachment",
+    ),
     "Cache-Control": "no-store",
     "Referrer-Policy": "no-referrer",
     "X-Content-Type-Options": "nosniff",
-  });
+  };
+
+  if (target.size !== null) headers["Content-Length"] = target.size;
+  if (inline) headers["Content-Security-Policy"] = "default-src 'none'; sandbox";
+
+  res.set(headers);
 
   await pipeline(target.stream, res);
 };

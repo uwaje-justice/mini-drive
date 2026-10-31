@@ -6,7 +6,7 @@ import shareValidator from "../validators/share-validator.js";
 import folderController from "../controllers/folder-controller.js";
 import shareController from "../controllers/share-controller.js";
 
-const { folderRules } = folderValidator;
+const { folderRules, moveRules } = folderValidator;
 const { shareRules } = shareValidator;
 const router = Router();
 
@@ -30,6 +30,13 @@ router.post(
   folderRules,
   validate("folders/edit"),
   folderController.update,
+);
+router.get("/:id/move", folderController.moveForm);
+router.post(
+  "/:id/move",
+  moveRules,
+  validate("folders/move", folderController.loadMovePage),
+  folderController.move,
 );
 router.post("/:id/delete", folderController.remove);
 

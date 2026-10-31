@@ -2,6 +2,7 @@
 <h1>Log in</h1>
 <% if (errors?.form) { %><p role="alert"><%= errors.form %></p><% } %>
 <form action="/auth/login" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div>
     <label for="email">Email</label>
     <input id="email" name="email" type="email" autocomplete="email" value="<%= values?.email ?? "" %>" required>

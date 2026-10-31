@@ -10,6 +10,9 @@
           <span><%= file.name %></span>
         <% } %>
         <span>(<%= formatBytes(file.size) %>)</span>
+        <% if (!showDetails && isPreviewable(file.mimeType)) { %>
+          <a href="<%= base %>/<%= file.id %>/preview">Preview</a>
+        <% } %>
         <a href="<%= base %>/<%= file.id %>/download">Download</a>
       </li>
     <% }); %>

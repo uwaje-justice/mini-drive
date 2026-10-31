@@ -17,5 +17,6 @@ router.use((req, res, next) => {
 router.get("/:token", shareController.showPublicFolder);
 router.get("/:token/folders/:folderId", shareController.showPublicFolder);
 router.get("/:token/files/:fileId/download", shareController.downloadPublicFile);
+router.get("/:token/files/:fileId/preview", shareController.previewPublicFile);
 
 export default router;

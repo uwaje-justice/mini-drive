@@ -2,6 +2,7 @@
 <h1>Rename folder</h1>
 <% if (errors?.name) { %><p role="alert"><%= errors.name %></p><% } %>
 <form action="" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div>
     <label for="name">Folder name</label>
     <input id="name" name="name" type="text" maxlength="100" value="<%= values?.name ?? "" %>" required>

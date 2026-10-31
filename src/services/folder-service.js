@@ -1,9 +1,12 @@
 import prisma from "../lib/prisma.js";
 import storage from "../lib/storage.js";
+import { buildPagination } from "../lib/pagination.js";
+import BadRequestError from "../errors/bad-request-error.js";
 import ConflictError from "../errors/conflict-error.js";
 import NotFoundError from "../errors/not-found-error.js";
 
 const rootParentKey = "root";
+const rootCrumb = { id: null, name: "My drive" };
 
 const folderNameKey = (name) => name.trim().toLowerCase();
 
@@ -38,36 +41,184 @@ const assertUniqueName = async (ownerId, parentKey, nameKey, excludeId) => {
   }
 };
 
-const listRoot = async (ownerId) => {
+const folderRecords = (ownerId) =>
+  prisma.folder.findMany({
+    where: { ownerId },
+    select: { id: true, name: true, parentId: true },
+  });
+
+const buildFolderContext = (folders) => {
+  const byId = new Map(folders.map((folder) => [folder.id, folder]));
+  const paths = new Map();
+  const depths = new Map();
+
+  const resolve = (folderId, seen = new Set()) => {
+    if (paths.has(folderId)) return;
+
+    const folder = byId.get(folderId);
+
+    if (!folder || seen.has(folderId)) {
+      paths.set(folderId, "My drive");
+      depths.set(folderId, 0);
+      return;
+    }
+
+    seen.add(folderId);
+
+    if (folder.parentId) resolve(folder.parentId, seen);
+
+    const parentPath = folder.parentId
+      ? paths.get(folder.parentId) ?? "My drive"
+      : "My drive";
+    const parentDepth = folder.parentId ? depths.get(folder.parentId) ?? 0 : 0;
+
+    paths.set(
+      folderId,
+      folder.parentId ? `${parentPath} / ${folder.name}` : folder.name,
+    );
+    depths.set(folderId, parentDepth + 1);
+  };
+
+  for (const folder of folders) resolve(folder.id);
+
+  return { byId, paths, depths };
+};
+
+const collectIds = (folders, rootId) => {
+  const ids = new Set([rootId]);
+  let added = true;
+
+  while (added) {
+    added = false;
+
+    for (const folder of folders) {
+      if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) {
+        ids.add(folder.id);
+        added = true;
+      }
+    }
+  }
+
+  return ids;
+};
+
+const collectFolderIds = async (ownerId, rootId) => {
+  const folders = await folderRecords(ownerId);
+
+  return [...collectIds(folders, rootId)];
+};
+
+const getSubtreeFolderIds = async (ownerId, rootId) => {
+  const folder = await getFolder(ownerId, rootId);
+
+  return collectFolderIds(ownerId, folder.id);
+};
+
+const getBreadcrumbs = async (ownerId, folder = null) => {
+  if (!folder) return [rootCrumb];
+
+  const folders = await folderRecords(ownerId);
+  const { byId } = buildFolderContext(folders);
+  const crumbs = [];
+  const seen = new Set();
+  let current = byId.get(folder.id) ?? folder;
+
+  while (current && !seen.has(current.id)) {
+    seen.add(current.id);
+    crumbs.unshift({ id: current.id, name: current.name });
+    current = current.parentId ? byId.get(current.parentId) : null;
+  }
+
+  return [rootCrumb, ...crumbs];
+};
+
+const getFolderPathMap = async (ownerId) => {
+  const folders = await folderRecords(ownerId);
+
+  return buildFolderContext(folders).paths;
+};
+
+const listMoveTargets = async (ownerId, { excludeFolderId = null } = {}) => {
+  const folders = await folderRecords(ownerId);
+  const { paths, depths } = buildFolderContext(folders);
+  const excluded = excludeFolderId
+    ? collectIds(folders, excludeFolderId)
+    : new Set();
+
+  return [
+    { id: null, name: "My drive", path: "My drive", depth: 0 },
+    ...folders
+      .filter((folder) => !excluded.has(folder.id))
+      .sort((left, right) =>
+        (paths.get(left.id) ?? "").localeCompare(paths.get(right.id) ?? ""),
+      )
+      .map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        path: paths.get(folder.id) ?? folder.name,
+        depth: depths.get(folder.id) ?? 0,
+      })),
+  ];
+};
+
+const listRoot = async (ownerId, { page, folderPage } = {}) => {
+  const [folderTotal, fileTotal] = await Promise.all([
+    prisma.folder.count({ where: { ownerId, parentId: null } }),
+    prisma.file.count({ where: { ownerId, folderId: null } }),
+  ]);
+  const folderPagination = buildPagination({ page: folderPage, total: folderTotal });
+  const filePagination = buildPagination({ page, total: fileTotal });
+
   const [folders, files] = await Promise.all([
     prisma.folder.findMany({
       where: { ownerId, parentId: null },
       orderBy: { name: "asc" },
+      skip: folderPagination.offset,
+      take: folderPagination.pageSize,
     }),
     prisma.file.findMany({
       where: { ownerId, folderId: null },
       orderBy: { createdAt: "desc" },
+      skip: filePagination.offset,
+      take: filePagination.pageSize,
     }),
   ]);
 
-  return { folders, files };
+  return {
+    folders,
+    files,
+    folderPagination,
+    filePagination,
+    breadcrumbs: [rootCrumb],
+  };
 };
 
-const getContents = async (ownerId, id) => {
+const getContents = async (ownerId, id, { page, folderPage } = {}) => {
   const folder = await getFolder(ownerId, id);
+  const [folderTotal, fileTotal, breadcrumbs] = await Promise.all([
+    prisma.folder.count({ where: { ownerId, parentId: id } }),
+    prisma.file.count({ where: { ownerId, folderId: id } }),
+    getBreadcrumbs(ownerId, folder),
+  ]);
+  const folderPagination = buildPagination({ page: folderPage, total: folderTotal });
+  const filePagination = buildPagination({ page, total: fileTotal });
 
   const [folders, files] = await Promise.all([
     prisma.folder.findMany({
       where: { ownerId, parentId: id },
       orderBy: { name: "asc" },
+      skip: folderPagination.offset,
+      take: folderPagination.pageSize,
     }),
     prisma.file.findMany({
       where: { ownerId, folderId: id },
       orderBy: { createdAt: "desc" },
+      skip: filePagination.offset,
+      take: filePagination.pageSize,
     }),
   ]);
 
-  return { folder, folders, files };
+  return { folder, folders, files, folderPagination, filePagination, breadcrumbs };
 };
 
 const createFolder = async (ownerId, { name, parentId }) => {
@@ -118,33 +269,39 @@ const renameFolder = async (ownerId, id, { name }) => {
   }
 };
 
-const collectFolderIds = async (ownerId, rootId) => {
-  const folders = await prisma.folder.findMany({
-    where: { ownerId },
-    select: { id: true, parentId: true },
-  });
+const moveFolder = async (ownerId, id, { parentId }) => {
+  const folder = await getFolder(ownerId, id);
+  const parent = await assertParent(ownerId, parentId);
 
-  const ids = new Set([rootId]);
-  let added = true;
+  if (parent) {
+    const folderIds = await collectFolderIds(ownerId, folder.id);
 
-  while (added) {
-    added = false;
-
-    for (const folder of folders) {
-      if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) {
-        ids.add(folder.id);
-        added = true;
-      }
+    if (folderIds.includes(parent.id)) {
+      throw new BadRequestError(
+        "A folder cannot move into itself or its subfolder.",
+      );
     }
   }
 
-  return [...ids];
-};
+  const parentKey = parent?.id ?? rootParentKey;
 
-const getSubtreeFolderIds = async (ownerId, rootId) => {
-  const folder = await getFolder(ownerId, rootId);
+  await assertUniqueName(ownerId, parentKey, folder.nameKey, folder.id);
 
-  return collectFolderIds(ownerId, folder.id);
+  try {
+    return await prisma.folder.update({
+      where: { id: folder.id },
+      data: {
+        parentId: parent?.id ?? null,
+        parentKey,
+      },
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ConflictError("A folder with this name already exists here.");
+    }
+
+    throw error;
+  }
 };
 
 const deleteFolder = async (ownerId, id) => {
@@ -185,7 +342,11 @@ export default {
   getContents,
   getFolder,
   getSubtreeFolderIds,
+  getBreadcrumbs,
+  getFolderPathMap,
+  listMoveTargets,
   createFolder,
   renameFolder,
+  moveFolder,
   deleteFolder,
 };

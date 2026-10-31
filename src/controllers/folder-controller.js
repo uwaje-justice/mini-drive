@@ -1,19 +1,23 @@
 import folderService from "../services/folder-service.js";
 import ConflictError from "../errors/conflict-error.js";
+import BadRequestError from "../errors/bad-request-error.js";
 
 const index = async (req, res) => {
-  const { folders, files } = await folderService.listRoot(req.user.id);
+  const page = await folderService.listRoot(req.user.id, {
+    page: req.query.page,
+    folderPage: req.query.folderPage,
+  });
 
-  return res.render("folders/index", { folders, files });
+  return res.render("folders/index", page);
 };
 
 const show = async (req, res) => {
-  const { folder, folders, files } = await folderService.getContents(
-    req.user.id,
-    req.params.id,
-  );
+  const page = await folderService.getContents(req.user.id, req.params.id, {
+    page: req.query.page,
+    folderPage: req.query.folderPage,
+  });
 
-  return res.render("folders/show", { folder, folders, files });
+  return res.render("folders/show", page);
 };
 
 const newForm = (req, res) => {
@@ -76,6 +80,49 @@ const update = async (req, res, next) => {
   }
 };
 
+const loadMovePage = async (req) => {
+  const folder = await folderService.getFolder(req.user.id, req.params.id);
+  const targets = await folderService.listMoveTargets(req.user.id, {
+    excludeFolderId: folder.id,
+  });
+
+  return {
+    folder,
+    targets,
+    errors: {},
+    values: { parentId: folder.parentId ?? "" },
+  };
+};
+
+const moveForm = async (req, res) => {
+  return res.render("folders/move", await loadMovePage(req));
+};
+
+const move = async (req, res, next) => {
+  const { parentId } = req.matchedData;
+
+  try {
+    const folder = await folderService.moveFolder(req.user.id, req.params.id, {
+      parentId: parentId || null,
+    });
+    const target = folder.parentId ? `/folders/${folder.parentId}` : "/folders";
+
+    return res.redirect(target);
+  } catch (error) {
+    if (error instanceof ConflictError || error instanceof BadRequestError) {
+      const page = await loadMovePage(req);
+
+      return res.status(error.statusCode).render("folders/move", {
+        ...page,
+        errors: { parentId: error.message },
+        values: { parentId: parentId ?? "" },
+      });
+    }
+
+    return next(error);
+  }
+};
+
 const remove = async (req, res) => {
   const folder = await folderService.deleteFolder(req.user.id, req.params.id);
   const target = folder.parentId ? `/folders/${folder.parentId}` : "/folders";
@@ -83,4 +130,15 @@ const remove = async (req, res) => {
   return res.redirect(target);
 };
 
-export default { index, show, newForm, create, editForm, update, remove };
+export default {
+  index,
+  show,
+  newForm,
+  create,
+  editForm,
+  update,
+  loadMovePage,
+  moveForm,
+  move,
+  remove,
+};
