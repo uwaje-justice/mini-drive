@@ -84,8 +84,8 @@ API:
 - `api/src/server.js` reads `PORT` and starts the HTTP server.
 - `api/src/routes/` wires URLs only. Route files end in `-routes.js`; `index-routes.js` combines them. `api/src/controllers/` calls services and sends JSON or binary responses.
 - `api/src/serializers.js` defines every response shape. Never return Prisma rows directly.
-- `api/src/responses.js` holds the JSON success and error helpers.
-- `api/src/middleware/` holds app-wide CSRF, upload, 404, and error handling, plus API auth, validation, headers, and the API-router 404.
+- `api/src/responses.js` holds the JSON success helper.
+- `api/src/middleware/` holds app-wide CSRF, upload, 404, and error handling, plus API auth, validation, and headers. All failures go through the error handler; middleware never writes error JSON.
 - `api/src/services/` holds database access and business rules. No Express code here.
 - `api/src/validators/` holds express-validator chains, one file per feature.
 - `api/src/errors/` holds custom errors with status codes, thrown by services and middleware.
@@ -122,11 +122,14 @@ Client:
 - Success: `{ data }`. Failure: `{ error: { code, message, fields? } }`.
 - Auth uses the session cookie. Every mutation sends the CSRF token in `x-csrf-token`.
 - `GET /api/auth/session` returns the signed-in user or `null`, plus a CSRF token.
+- Validated request fields are available as `req.validated`. Registration also requires `confirmPassword`.
 - JSON and binary errors use `no-store` and `nosniff`.
 - Public shares add `no-referrer` and `noindex, nofollow`.
-- Uploads accept up to 10 files. A clean batch returns `201`; any skipped files return `207`.
+- Uploads accept up to 10 files. A clean batch returns `201`; any skipped files return `207`. A request with no files returns `400`.
 - Authentication failures return JSON `401`, never a redirect.
 - Unknown routes return JSON `404`.
+- Public share breadcrumbs start at the shared folder. Ancestors and the shared root's real `parentId` stay hidden.
+- File responses include `folder: { id, name }`, or `null` at the drive root.
 
 ## Commands
 
@@ -164,5 +167,7 @@ Client:
   root files.
 - Previews are inline and limited to images, PDF, and plain text.
 - ESLint 10 tracks JSX references natively, so no React lint plugin is needed.
-- Test files prefixed `api-` cover HTTP behavior. `lib`, `storage`, and `server`
-  tests cover backend internals used by the API.
+- `api/tests/` uses feature names for HTTP behavior: `auth.test.js`,
+  `files.test.js`, `folders.test.js`, `search-share.test.js`, and
+  `security.test.js`. `lib`, `storage`, and `server` tests cover backend
+  internals used by the API.
