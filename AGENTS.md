@@ -48,12 +48,15 @@ file-uploader/
 │   │   ├── env.js
 │   │   ├── file-signature.js
 │   │   ├── format-bytes.js
+│   │   ├── pagination.js
+│   │   ├── preview.js
 │   │   ├── prisma.js
 │   │   ├── send-file.js
 │   │   ├── storage.js
 │   │   ├── storage-cloudinary.js
 │   │   └── storage-local.js
 │   ├── middleware/
+│   │   ├── csrf.js
 │   │   ├── require-auth.js
 │   │   ├── upload.js
 │   │   ├── validate.js
@@ -64,16 +67,19 @@ file-uploader/
 │   │   ├── auth.js
 │   │   ├── folders.js
 │   │   ├── files.js
+│   │   ├── search.js
 │   │   └── share.js
 │   ├── controllers/
 │   │   ├── auth-controller.js
 │   │   ├── folder-controller.js
 │   │   ├── file-controller.js
+│   │   ├── search-controller.js
 │   │   └── share-controller.js
 │   ├── services/
 │   │   ├── auth-service.js
 │   │   ├── folder-service.js
 │   │   ├── file-service.js
+│   │   ├── search-service.js
 │   │   └── share-service.js
 │   ├── validators/
 │   │   ├── auth-validator.js
@@ -85,7 +91,8 @@ file-uploader/
 │       │   ├── header.ejs
 │       │   ├── footer.ejs
 │       │   ├── folder-list.ejs
-│       │   └── file-list.ejs
+│       │   ├── file-list.ejs
+│       │   └── pagination.ejs
 │       ├── auth/
 │       │   ├── register.ejs
 │       │   └── login.ejs
@@ -94,9 +101,13 @@ file-uploader/
 │       │   ├── show.ejs
 │       │   ├── new.ejs
 │       │   ├── edit.ejs
+│       │   ├── move.ejs
 │       │   └── share.ejs
 │       ├── files/
-│       │   └── show.ejs
+│       │   ├── show.ejs
+│       │   └── edit.ejs
+│       ├── search/
+│       │   └── index.ejs
 │       ├── share/
 │       │   └── show.ejs
 │       └── error.ejs
@@ -118,8 +129,8 @@ file-uploader/
 - `src/server.js` reads `PORT` and starts the HTTP server.
 - `src/config/` holds one-time setup for Passport and sessions.
 - `src/errors/` holds custom error classes with status codes, thrown by services and middleware.
-- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapters, file signatures, download headers, and size formatting.
-- `src/middleware/` holds request-level checks: auth guard, multer upload, 404, error handler.
+- `src/lib/` holds shared singletons and helpers: env reader, Prisma client, storage adapters, file signatures, pagination, preview rules, download headers, and size formatting.
+- `src/middleware/` holds request-level checks: CSRF, auth guard, multer upload, validation, 404, and the error handler.
 - `src/routes/` wires URLs to controllers only.
 - `src/controllers/` reads the request, calls a service, then renders or redirects.
 - `src/services/` holds database access and business rules. No Express code here.
@@ -153,3 +164,11 @@ file-uploader/
   Cloudinary variables to use remote storage.
 - Each `File` row records its own `storageProvider`, so local and Cloudinary
   files can coexist.
+- Cloudinary previews and downloads are proxied through Express; the browser
+  never receives a direct Cloudinary URL.
+- Pages use session-backed CSRF tokens. Multipart uploads apply CSRF after
+  Multer so the hidden `_csrf` field is parsed.
+- Folder and file listings show 20 items per page. Folder pages use
+  `folderPage`; file pages use `page`. Search uses `page`.
+- Uploads accept up to 10 files. Bad type, empty, long-name, or duplicate files
+  are skipped with a per-file message; an oversized file rejects the batch.
