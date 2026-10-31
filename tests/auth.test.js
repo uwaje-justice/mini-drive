@@ -30,6 +30,62 @@ test("protected pages redirect guests to login", async () => {
   }
 });
 
+test("auth pages use the split layout without a site header", async () => {
+  const client = createAgent();
+
+  for (const [path, formType] of [
+    ["/auth/login", "login"],
+    ["/auth/register", "register"],
+  ]) {
+    const response = await client.get(path);
+
+    assert.equal(response.status, 200, path);
+    assert.match(response.text, /class="auth-page"/);
+    assert.match(response.text, /class="auth-shell"/);
+    assert.match(response.text, /class="auth-visual"/);
+    assert.match(response.text, /class="auth-back" href="\/"/);
+    assert.match(response.text, /Back to home/);
+    assert.match(response.text, new RegExp(`data-auth-form="${formType}"`));
+    assert.match(response.text, /\/css\/auth\.css/);
+    assert.match(response.text, /\/js\/auth-validation\.js/);
+    assert.match(response.text, /aria-describedby="email-error"/);
+    assert.match(response.text, /data-error-for="email"/);
+    assert.doesNotMatch(response.text, /class="site-header"/);
+    assert.doesNotMatch(response.text, /\/css\/landing\.css/);
+  }
+});
+
+test("auth styles and validation script are served", async () => {
+  const client = createAgent();
+
+  const styles = await client.get("/css/auth.css");
+  const script = await client.get("/js/auth-validation.js");
+
+  assert.equal(styles.status, 200);
+  assert.match(styles.headers["content-type"], /text\/css/);
+  assert.match(styles.text, /\.auth-shell/);
+
+  assert.equal(script.status, 200);
+  assert.match(script.headers["content-type"], /javascript/);
+  assert.match(script.text, /Passwords do not match\./);
+});
+
+test("server auth errors render below fields and mark them invalid", async () => {
+  const response = await postForm(createAgent(), "/auth/register", {
+    email: "not-an-email",
+    password: "short",
+    confirmPassword: "different",
+  });
+
+  assert.equal(response.status, 422);
+  assert.match(response.text, /name="email"[\s\S]*?aria-invalid="true"/);
+  assert.match(response.text, /data-error-for="email"[^>]*>Enter a valid email\./);
+  assert.match(response.text, /name="password"[\s\S]*?aria-invalid="true"/);
+  assert.match(response.text, /data-error-for="password"[^>]*>Password must be 8 to 128 characters\./);
+  assert.match(response.text, /name="confirmPassword"[\s\S]*?aria-invalid="true"/);
+  assert.match(response.text, /data-error-for="confirmPassword"[^>]*>Passwords do not match\./);
+});
+
 test("registration validates email, password, and confirmation", async () => {
   const response = await postForm(createAgent(), "/auth/register", {
     email: "not-an-email",

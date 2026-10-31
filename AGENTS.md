@@ -90,6 +90,8 @@ file-uploader/
 │       ├── partials/
 │       │   ├── header.ejs
 │       │   ├── footer.ejs
+│       │   ├── brand-mark.ejs
+│       │   ├── auth-visual.ejs
 │       │   ├── folder-list.ejs
 │       │   ├── file-list.ejs
 │       │   └── pagination.ejs
@@ -176,3 +178,7 @@ file-uploader/
   Use `--font-family-base` from `public/css/tokens.css`.
 - Landing-only styles live in `public/css/landing.css`. Shared tokens and base
   styles apply to every page.
+- Auth pages use a full-viewport split layout with no site header. The decorative
+  panel lives in `auth-visual.ejs`; the accessible "Back to home" link sits in
+  the form panel. `public/js/auth-validation.js` mirrors server auth rules, but
+  the server stays authoritative.
