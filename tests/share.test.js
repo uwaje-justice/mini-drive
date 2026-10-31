@@ -78,7 +78,8 @@ test("share links can be revoked", async () => {
   const folder = await createFolder(client, user, "Public");
   const link = await createShareLink(client, folder);
 
-  const response = await client.post(
+  const response = await postForm(
+    client,
     `/folders/${folder.id}/share/${link.id}/revoke`,
   );
   const publicPage = await createAgent().get(`/share/${link.token}`);
@@ -122,6 +123,9 @@ test("shared folders show nested content and allow downloads", async () => {
     link.token,
     childFile.id,
   );
+  const preview = await visitor.get(
+    `/share/${link.token}/files/${childFile.id}/preview`,
+  );
 
   assert.equal(rootPage.status, 200);
   assert.match(rootPage.text, /Public/);
@@ -130,6 +134,13 @@ test("shared folders show nested content and allow downloads", async () => {
   assert.equal(childPage.status, 200);
   assert.match(childPage.text, /child\.txt/);
   assert.match(childPage.text, /Back/);
+  assert.match(childPage.text, /Preview/);
+  assert.equal(preview.status, 200);
+  assert.match(preview.headers["content-disposition"], /^inline;/);
+  const previewBody = Buffer.isBuffer(preview.body)
+    ? preview.body
+    : Buffer.from(preview.text, "utf8");
+  assert.ok(previewBody.equals(bytes.text));
   assert.equal(download.status, 200);
   assert.ok(download.body.equals(bytes.text));
   assert.equal(download.headers["cache-control"], "no-store");
@@ -221,7 +232,8 @@ test("only the owner can create or revoke a folder share", async () => {
     `/folders/${folder.id}/share`,
     { days: 7 },
   );
-  const revoke = await otherClient.post(
+  const revoke = await postForm(
+    otherClient,
     `/folders/${folder.id}/share/${link.id}/revoke`,
   );
 

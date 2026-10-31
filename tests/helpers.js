@@ -15,8 +15,25 @@ export const uniqueEmail = (label) =>
 
 export const createAgent = () => request.agent(app);
 
-export const postForm = (client, path, fields = {}) =>
-  client.post(path).type("form").send(fields);
+export const getCsrfToken = async (client) => {
+  const response = await client.get("/");
+  const match = response.text.match(
+    /<meta name="csrf-token" content="([^"]+)">/,
+  );
+
+  if (!match) throw new Error("CSRF token was not rendered.");
+
+  return match[1];
+};
+
+export const postForm = async (client, path, fields = {}) => {
+  const token = fields._csrf ?? (await getCsrfToken(client));
+
+  return client
+    .post(path)
+    .type("form")
+    .send({ ...fields, _csrf: token });
+};
 
 export const registerUser = async (client, label = "user") => {
   const email = uniqueEmail(label);
@@ -75,19 +92,27 @@ export const createFolder = async (
   return folder;
 };
 
-export const uploadFile = (
+export const uploadFiles = async (
   client,
-  { folderId = null, name, buffer, contentType = "application/octet-stream" },
+  { folderId = null, files },
 ) => {
-  const agent = client.post("/files/upload");
+  const token = await getCsrfToken(client);
+  const agent = client.post("/files/upload").field("_csrf", token);
 
   if (folderId) agent.field("folderId", folderId);
 
-  return agent.attach("file", buffer, {
-    filename: name,
-    contentType,
-  });
+  for (const file of files) {
+    agent.attach("files", file.buffer, {
+      filename: file.name,
+      contentType: file.contentType ?? "application/octet-stream",
+    });
+  }
+
+  return agent;
 };
+
+export const uploadFile = async (client, { folderId = null, ...file }) =>
+  uploadFiles(client, { folderId, files: [file] });
 
 export const findFile = (ownerId, name) =>
   prisma.file.findFirst({

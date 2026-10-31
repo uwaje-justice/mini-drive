@@ -4,6 +4,7 @@ import detectMimeType from "../src/lib/file-signature.js";
 import contentDisposition from "../src/lib/content-disposition.js";
 import formatBytes from "../src/lib/format-bytes.js";
 import env from "../src/lib/env.js";
+import { buildPagination, parsePage } from "../src/lib/pagination.js";
 import { bytes } from "./helpers.js";
 
 test("file signatures detect every supported type", () => {
@@ -54,6 +55,24 @@ test("format bytes changes units at the right thresholds", () => {
   assert.equal(formatBytes(1024 * 1024 - 1), "1024.0 KB");
   assert.equal(formatBytes(1024 * 1024), "1.0 MB");
   assert.equal(formatBytes(5 * 1024 * 1024), "5.0 MB");
+});
+
+test("pagination parses pages and clamps to the available range", () => {
+  assert.equal(parsePage("2"), 2);
+  assert.equal(parsePage("0"), 1);
+  assert.equal(parsePage("2.5"), 1);
+  assert.equal(parsePage(undefined), 1);
+  assert.deepEqual(buildPagination({ page: 2, total: 45 }), {
+    page: 2,
+    pageSize: 20,
+    total: 45,
+    totalPages: 3,
+    hasPrevious: true,
+    hasNext: true,
+    offset: 20,
+  });
+  assert.equal(buildPagination({ page: 99, total: 45 }).page, 3);
+  assert.equal(buildPagination({ page: 1, total: 0 }).totalPages, 0);
 });
 
 test("env reads values, honors fallbacks, and throws when missing", () => {

@@ -212,9 +212,16 @@ test("cloudinary storage reports failed deletes", async () => {
   );
 });
 
-test("cloudinary storage builds a short-lived signed download URL", async () => {
+test("cloudinary storage proxies a short-lived signed download", async () => {
   const calls = [];
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response("proxied", {
+      headers: { "content-length": "7" },
+    }),
+  );
 
+  vi.stubGlobal("fetch", fetchMock);
+  onTestFinished(() => vi.unstubAllGlobals());
   vi.spyOn(cloudinary.utils, "private_download_url").mockImplementation(
     (key, format, options) => {
       calls.push({ key, format, options });
@@ -230,15 +237,36 @@ test("cloudinary storage builds a short-lived signed download URL", async () => 
     storageResourceType: "image",
   });
   const options = calls[0].options;
+  const body = await readStream(target.stream);
 
-  assert.equal(target.redirectUrl, "https://cloudinary.test/download");
+  assert.equal(target.size, 7);
+  assert.equal(body.toString(), "proxied");
+  assert.equal(fetchMock.mock.calls[0][0], "https://cloudinary.test/download");
   assert.equal(calls[0].key, "file-uploader/user/image");
   assert.equal(calls[0].format, "png");
   assert.equal(options.resource_type, "image");
   assert.equal(options.type, "authenticated");
-  assert.equal(options.attachment, true);
+  assert.equal(options.attachment, false);
   assert.ok(options.expires_at >= before + 290);
   assert.ok(options.expires_at <= before + 310);
+});
+
+test("cloudinary storage reports missing assets while opening", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 404 })));
+  onTestFinished(() => vi.unstubAllGlobals());
+  vi.spyOn(cloudinary.utils, "private_download_url").mockReturnValue(
+    "https://cloudinary.test/missing",
+  );
+
+  await assert.rejects(
+    () =>
+      cloudinaryStorage.open({
+        storageKey: "file-uploader/user/missing",
+        storageFormat: "png",
+        storageResourceType: "image",
+      }),
+    { code: "ENOENT" },
+  );
 });
 
 test("cloudinary storage requires configuration", () => {

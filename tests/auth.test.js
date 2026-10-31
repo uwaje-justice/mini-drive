@@ -104,7 +104,7 @@ test("users can log out and log back in", async () => {
   const user = await registerUser(firstClient, "login");
   onTestFinished(() => cleanupUser(user));
 
-  const logout = await firstClient.post("/auth/logout");
+  const logout = await postForm(firstClient, "/auth/logout");
 
   assert.equal(logout.status, 302);
   assert.equal(logout.headers.location, "/auth/login");

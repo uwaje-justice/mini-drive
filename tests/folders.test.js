@@ -149,6 +149,60 @@ test("folder rename validation rejects empty names", async () => {
   assert.match(response.text, /Folder name is required/);
 });
 
+test("folders can move to another parent without becoming their own child", async () => {
+  const client = createAgent();
+  const user = await registerUser(client, "folder-move");
+  onTestFinished(() => cleanupUser(user));
+
+  const target = await createFolder(client, user, "Target");
+  const folder = await createFolder(client, user, "Project");
+  const child = await createFolder(client, user, "Child", folder.id);
+  const grandchild = await createFolder(client, user, "Grandchild", child.id);
+
+  const form = await client.get(`/folders/${folder.id}/move`);
+  const moved = await postForm(client, `/folders/${folder.id}/move`, {
+    parentId: target.id,
+  });
+  const targetPage = await client.get(`/folders/${target.id}`);
+  const cycle = await postForm(client, `/folders/${folder.id}/move`, {
+    parentId: grandchild.id,
+  });
+
+  assert.equal(form.status, 200);
+  assert.match(form.text, /Target/);
+  assert.doesNotMatch(form.text, new RegExp(`value="${folder.id}"`));
+  assert.doesNotMatch(form.text, new RegExp(`value="${child.id}"`));
+  assert.doesNotMatch(form.text, new RegExp(`value="${grandchild.id}"`));
+  assert.equal(moved.status, 302);
+  assert.equal(moved.headers.location, `/folders/${target.id}`);
+  assert.match(targetPage.text, /Project/);
+  assert.equal(cycle.status, 400);
+  assert.match(cycle.text, /cannot move into itself or its subfolder/);
+
+  const saved = await prisma.folder.findUnique({ where: { id: folder.id } });
+  assert.equal(saved.parentId, target.id);
+  assert.equal(saved.parentKey, target.id);
+});
+
+test("folder moves reject duplicate sibling names", async () => {
+  const client = createAgent();
+  const user = await registerUser(client, "folder-move-duplicate");
+  onTestFinished(() => cleanupUser(user));
+
+  const target = await createFolder(client, user, "Target");
+  await createFolder(client, user, "Project", target.id);
+  const folder = await createFolder(client, user, "Project");
+
+  const response = await postForm(client, `/folders/${folder.id}/move`, {
+    parentId: target.id,
+  });
+
+  assert.equal(response.status, 409);
+  assert.match(response.text, /already exists here/);
+  const saved = await prisma.folder.findUnique({ where: { id: folder.id } });
+  assert.equal(saved.parentId, null);
+});
+
 test("users cannot view, edit, or rename another user's folder", async () => {
   const ownerClient = createAgent();
   const owner = await registerUser(ownerClient, "folder-owner");
@@ -162,6 +216,7 @@ test("users cannot view, edit, or rename another user's folder", async () => {
   for (const [method, path] of [
     ["get", `/folders/${folder.id}`],
     ["get", `/folders/${folder.id}/edit`],
+    ["get", `/folders/${folder.id}/move`],
     ["get", `/folders/${folder.id}/share`],
   ]) {
     const response = await otherClient[method](path);
@@ -172,9 +227,13 @@ test("users cannot view, edit, or rename another user's folder", async () => {
   const rename = await postForm(otherClient, `/folders/${folder.id}/edit`, {
     name: "Stolen",
   });
-  const remove = await otherClient.post(`/folders/${folder.id}/delete`);
+  const move = await postForm(otherClient, `/folders/${folder.id}/move`, {
+    parentId: "",
+  });
+  const remove = await postForm(otherClient, `/folders/${folder.id}/delete`);
 
   assert.equal(rename.status, 404);
+  assert.equal(move.status, 404);
   assert.equal(remove.status, 404);
   assert.equal(
     (await prisma.folder.findUnique({ where: { id: folder.id } })).name,
@@ -226,7 +285,7 @@ test("deleting a folder removes descendants, files, shares, and disk data", asyn
   assert.equal(upload.status, 302);
   assert.equal(existsSync(diskPath), true);
 
-  const response = await client.post(`/folders/${parent.id}/delete`);
+  const response = await postForm(client, `/folders/${parent.id}/delete`);
 
   assert.equal(response.status, 302);
   assert.equal(response.headers.location, "/folders");
@@ -244,7 +303,7 @@ test("deleting a nested folder redirects to its parent", async () => {
   const parent = await createFolder(client, user, "Parent");
   const child = await createFolder(client, user, "Child", parent.id);
 
-  const response = await client.post(`/folders/${child.id}/delete`);
+  const response = await postForm(client, `/folders/${child.id}/delete`);
 
   assert.equal(response.status, 302);
   assert.equal(response.headers.location, `/folders/${parent.id}`);
