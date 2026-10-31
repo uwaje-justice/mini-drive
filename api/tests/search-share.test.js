@@ -110,7 +110,8 @@ test("public share API exposes nested content and safe binary responses", async 
   const user = await registerApiUser(client, "api-public-share");
   onTestFinished(() => cleanupUser(user));
 
-  const folder = await createApiFolder(client, "Public");
+  const ancestor = await createApiFolder(client, "Private ancestor");
+  const folder = await createApiFolder(client, "Public", ancestor.id);
   const child = await createApiFolder(client, "Nested", folder.id);
   await uploadApiFile(client, {
     folderId: folder.id,
@@ -148,11 +149,29 @@ test("public share API exposes nested content and safe binary responses", async 
   assert.equal(rootPage.headers["x-robots-tag"], "noindex, nofollow");
   assert.equal(rootPage.body.data.share.token, link.token);
   assert.equal(rootPage.body.data.folder.name, "Public");
+  assert.equal(rootPage.body.data.folder.parentId, null);
+  assert.deepEqual(
+    rootPage.body.data.breadcrumbs.map((crumb) => crumb.name),
+    ["Public"],
+  );
   assert.equal(rootPage.body.data.files[0].name, "root.txt");
+  assert.equal(rootPage.body.data.files[0].storageKey, undefined);
+  assert.equal(rootPage.body.data.files[0].ownerId, undefined);
   assert.equal(childPage.body.data.folder.name, "Nested");
+  assert.equal(childPage.body.data.folder.parentId, folder.id);
+  assert.deepEqual(
+    childPage.body.data.breadcrumbs.map((crumb) => crumb.name),
+    ["Public", "Nested"],
+  );
   assert.equal(childPage.body.data.files[0].name, "child.txt");
+  assert.equal(JSON.stringify(rootPage.body).includes(ancestor.id), false);
+  assert.equal(JSON.stringify(rootPage.body).includes(ancestor.name), false);
+  assert.equal(JSON.stringify(childPage.body).includes(ancestor.id), false);
+  assert.equal(JSON.stringify(childPage.body).includes(ancestor.name), false);
   assert.equal(preview.status, 200);
   assert.match(preview.headers["content-disposition"], /^inline;/);
+  assert.equal(preview.headers["referrer-policy"], "no-referrer");
+  assert.equal(preview.headers["x-robots-tag"], "noindex, nofollow");
   assert.ok(preview.body.equals(bytes.text));
   assert.equal(download.status, 200);
   assert.ok(download.body.equals(bytes.text));
@@ -181,6 +200,7 @@ test("expired, revoked, and out-of-scope public shares return 404", async () => 
   const siblingFile = await findFile(user.id, "sibling.txt");
   const rootFile = await findFile(user.id, "root.txt");
   const link = await createApiShareLink(client, shared);
+  const revokedLink = await createApiShareLink(client, shared);
   const visitor = createAgent();
 
   const siblingFolder = await visitor.get(
@@ -197,6 +217,12 @@ test("expired, revoked, and out-of-scope public shares return 404", async () => 
     rootFile.id,
   );
   const unknown = await visitor.get("/api/public/shares/not-a-token");
+  const revoke = await sendApi(
+    client,
+    "delete",
+    `/api/folders/${shared.id}/shares/${revokedLink.id}`,
+  );
+  const revoked = await visitor.get(`/api/public/shares/${revokedLink.token}`);
 
   await prisma.shareLink.update({
     where: { id: link.id },
@@ -208,6 +234,9 @@ test("expired, revoked, and out-of-scope public shares return 404", async () => 
   assert.equal(siblingDownload.status, 404);
   assert.equal(rootDownload.status, 404);
   assert.equal(unknown.status, 404);
+  assert.equal(revoke.status, 204);
+  assert.equal(revoked.status, 404);
+  assert.equal(revoked.headers["cache-control"], "no-store");
   assert.equal(expired.status, 404);
   assert.match(expired.body.error.message, /Share link not found or expired/);
 });

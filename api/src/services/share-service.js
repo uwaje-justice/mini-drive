@@ -74,9 +74,14 @@ const getSharedContents = async (
   const contents = await folderService.getContents(ownerId, targetId, {
     page,
     folderPage,
+    breadcrumbRootId: share.folderId,
   });
+  const folder =
+    targetId === share.folderId
+      ? { ...contents.folder, parentId: null }
+      : contents.folder;
 
-  return { share, ...contents };
+  return { share, ...contents, folder };
 };
 
 const getSharedFile = async (token, fileId) => {

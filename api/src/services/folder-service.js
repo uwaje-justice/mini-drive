@@ -114,7 +114,11 @@ const getSubtreeFolderIds = async (ownerId, rootId) => {
   return collectFolderIds(ownerId, folder.id);
 };
 
-const getBreadcrumbs = async (ownerId, folder = null) => {
+const getBreadcrumbs = async (
+  ownerId,
+  folder = null,
+  { stopAtId = null } = {},
+) => {
   if (!folder) return [rootCrumb];
 
   const folders = await folderRecords(ownerId);
@@ -126,10 +130,11 @@ const getBreadcrumbs = async (ownerId, folder = null) => {
   while (current && !seen.has(current.id)) {
     seen.add(current.id);
     crumbs.unshift({ id: current.id, name: current.name });
+    if (current.id === stopAtId) break;
     current = current.parentId ? byId.get(current.parentId) : null;
   }
 
-  return [rootCrumb, ...crumbs];
+  return stopAtId ? crumbs : [rootCrumb, ...crumbs];
 };
 
 const getFolderPathMap = async (ownerId) => {
@@ -193,12 +198,16 @@ const listRoot = async (ownerId, { page, folderPage } = {}) => {
   };
 };
 
-const getContents = async (ownerId, id, { page, folderPage } = {}) => {
+const getContents = async (
+  ownerId,
+  id,
+  { page, folderPage, breadcrumbRootId = null } = {},
+) => {
   const folder = await getFolder(ownerId, id);
   const [folderTotal, fileTotal, breadcrumbs] = await Promise.all([
     prisma.folder.count({ where: { ownerId, parentId: id } }),
     prisma.file.count({ where: { ownerId, folderId: id } }),
-    getBreadcrumbs(ownerId, folder),
+    getBreadcrumbs(ownerId, folder, { stopAtId: breadcrumbRootId }),
   ]);
   const folderPagination = buildPagination({ page: folderPage, total: folderTotal });
   const filePagination = buildPagination({ page, total: fileTotal });
