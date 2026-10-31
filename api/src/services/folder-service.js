@@ -7,6 +7,7 @@ import storage from "../lib/storage.js";
 
 const rootParentKey = "root";
 const rootCrumb = { id: null, name: "My drive" };
+const fileFolderInclude = { folder: { select: { id: true, name: true } } };
 
 const folderNameKey = (name) => name.trim().toLowerCase();
 
@@ -186,6 +187,7 @@ const listRoot = async (ownerId, { page, folderPage } = {}) => {
       orderBy: { createdAt: "desc" },
       skip: filePagination.offset,
       take: filePagination.pageSize,
+      include: fileFolderInclude,
     }),
   ]);
 
@@ -224,6 +226,7 @@ const getContents = async (
       orderBy: { createdAt: "desc" },
       skip: filePagination.offset,
       take: filePagination.pageSize,
+      include: fileFolderInclude,
     }),
   ]);
 

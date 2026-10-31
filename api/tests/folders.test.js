@@ -50,7 +50,7 @@ test("the folder API returns nested contents and breadcrumbs", async () => {
 
   const parent = await createApiFolder(client, "Projects");
   const child = await createApiFolder(client, "Website", parent.id);
-  await uploadApiFile(client, {
+  const upload = await uploadApiFile(client, {
     folderId: child.id,
     name: "notes.txt",
     buffer: bytes.text,
@@ -59,6 +59,11 @@ test("the folder API returns nested contents and breadcrumbs", async () => {
 
   const response = await client.get(`/api/folders/${child.id}`);
 
+  assert.equal(upload.status, 201);
+  assert.deepEqual(upload.body.data.uploaded[0].folder, {
+    id: child.id,
+    name: "Website",
+  });
   assert.equal(response.status, 200);
   assert.equal(response.body.data.folder.id, child.id);
   assert.deepEqual(
@@ -68,6 +73,10 @@ test("the folder API returns nested contents and breadcrumbs", async () => {
   assert.equal(response.body.data.files.length, 1);
   assert.equal(response.body.data.files[0].name, "notes.txt");
   assert.equal(response.body.data.files[0].previewKind, "text");
+  assert.deepEqual(response.body.data.files[0].folder, {
+    id: child.id,
+    name: "Website",
+  });
   assert.equal(response.body.data.files[0].storageKey, undefined);
   assert.equal(response.body.data.files[0].ownerId, undefined);
 });

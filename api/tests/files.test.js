@@ -59,6 +59,7 @@ test("the file API stores, downloads, and previews every supported type", async 
     assert.equal(upload.status, 201, item.name);
     assert.equal(uploaded.mimeType, item.mimeType, item.name);
     assert.equal(uploaded.previewKind !== null, true, item.name);
+    assert.equal(uploaded.folder, null, item.name);
     assert.equal(uploaded.storageKey, undefined, item.name);
     assert.equal(uploaded.ownerId, undefined, item.name);
     assert.equal(file.mimeType, item.mimeType, item.name);
@@ -257,12 +258,17 @@ test("files can be renamed, moved, and deleted through the API", async () => {
 
   assert.equal(rename.status, 200);
   assert.equal(rename.body.data.file.name, "renamed.txt");
+  assert.equal(rename.body.data.file.folder, null);
   assert.equal(targets.status, 200);
   assert.ok(
     targets.body.data.targets.some((target) => target.id === folder.id),
   );
   assert.equal(move.status, 200);
   assert.equal(move.body.data.file.folderId, folder.id);
+  assert.deepEqual(move.body.data.file.folder, {
+    id: folder.id,
+    name: "Target",
+  });
   assert.equal(details.body.data.file.folder.name, "Target");
   assert.equal(remove.status, 204);
   assert.equal(await prisma.file.count({ where: { id: file.id } }), 0);

@@ -5,6 +5,7 @@ import prisma from "../lib/prisma.js";
 import storage from "../lib/storage.js";
 
 const rootFolderKey = "root";
+const folderRelation = { select: { id: true, name: true } };
 
 const fileNameKey = (name) => name.trim().toLowerCase();
 
@@ -44,7 +45,7 @@ const assertUniqueFileName = async (ownerId, folderKey, nameKey, excludeId) => {
 const getFile = async (ownerId, id) => {
   const file = await prisma.file.findFirst({
     where: { id, ownerId },
-    include: { folder: { select: { id: true, name: true } } },
+    include: { folder: folderRelation },
   });
 
   if (!file) throw new NotFoundError("File not found.");
@@ -81,6 +82,7 @@ const createFile = async ({ ownerId, folderId, file }) => {
         folderId: folder?.id ?? null,
         folderKey,
       },
+      include: { folder: folderRelation },
     });
   } catch (error) {
     await storage.remove(saved);
@@ -140,6 +142,7 @@ const renameFile = async (ownerId, id, { name }) => {
     return await prisma.file.update({
       where: { id: file.id },
       data: { name: trimmedName, nameKey },
+      include: { folder: folderRelation },
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -163,6 +166,7 @@ const moveFile = async (ownerId, id, { folderId }) => {
     return await prisma.file.update({
       where: { id: file.id },
       data: { folderId: folder?.id ?? null, folderKey },
+      include: { folder: folderRelation },
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
