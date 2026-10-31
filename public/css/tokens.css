@@ -15,41 +15,41 @@
   --text-3xl: 2.75rem;
   --text-display: clamp(2.85rem, 5.6vw, 4.8rem);
 
-  --color-primary: #0b57d0;
-  --color-primary-hover: #0842a0;
+  --color-primary: #1558d6;
+  --color-primary-hover: #0d47b5;
   --color-on-primary: #ffffff;
-  --color-primary-container: #d3e3fd;
-  --color-on-primary-container: #001d35;
+  --color-primary-container: #e7efff;
+  --color-on-primary-container: #0d2b66;
 
-  --color-secondary: #00639b;
+  --color-secondary: #087a72;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #c2e7ff;
-  --color-on-secondary-container: #001d35;
+  --color-secondary-container: #d9f5f0;
+  --color-on-secondary-container: #003d39;
 
   --color-surface: #ffffff;
-  --color-on-surface: #1f1f1f;
-  --color-on-surface-variant: #444746;
+  --color-on-surface: #182235;
+  --color-on-surface-variant: #5d6b7e;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f8fafd;
-  --color-surface-container: #f0f4f9;
-  --color-surface-container-high: #e9eef6;
-  --color-surface-container-highest: #dde3ea;
+  --color-surface-container-low: #f6f8fc;
+  --color-surface-container: #eef2f8;
+  --color-surface-container-high: #e4e9f2;
+  --color-surface-container-highest: #d8e0ec;
 
-  --color-outline: #747775;
-  --color-outline-variant: #c4c7c5;
-  --color-focus-ring: #a8c7fa;
+  --color-outline: #7d899a;
+  --color-outline-variant: #d3dbe7;
+  --color-focus-ring: #a9c3ff;
 
-  --color-yellow: #fbbc04;
-  --color-yellow-container: #fef7e0;
-  --color-on-yellow-container: #5f4b00;
-  --color-green: #34a853;
-  --color-green-container: #e6f4ea;
-  --color-on-green-container: #0d5223;
-  --color-red: #ea4335;
-  --color-red-container: #fce8e6;
-  --color-on-red-container: #8c1d18;
+  --color-yellow: #e9aa00;
+  --color-yellow-container: #fff4d6;
+  --color-on-yellow-container: #5b4300;
+  --color-green: #0f9f6e;
+  --color-green-container: #e2f7ee;
+  --color-on-green-container: #07513a;
+  --color-red: #d6352c;
+  --color-red-container: #fdecea;
+  --color-on-red-container: #8b1d18;
 
-  --color-scrim: rgba(32, 33, 36, 0.32);
+  --color-scrim: rgba(24, 34, 53, 0.34);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -63,18 +63,19 @@
   --space-16: 4rem;
   --space-20: 5rem;
 
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.125rem;
   --radius-xl: 1.5rem;
-  --radius-2xl: 1.75rem;
+  --radius-2xl: 1.875rem;
+  --radius-control: 0.875rem;
   --radius-pill: 999px;
 
-  --shadow-1: 0 1px 2px rgba(60, 64, 67, 0.16), 0 1px 3px 1px rgba(60, 64, 67, 0.1);
-  --shadow-2: 0 2px 6px rgba(60, 64, 67, 0.14), 0 1px 2px rgba(60, 64, 67, 0.2);
-  --shadow-lift: 0 18px 48px rgba(11, 87, 208, 0.14), 0 4px 14px rgba(60, 64, 67, 0.1);
+  --shadow-1: 0 1px 2px rgba(24, 34, 53, 0.04), 0 8px 24px rgba(24, 34, 53, 0.05);
+  --shadow-2: 0 2px 6px rgba(24, 34, 53, 0.06), 0 16px 36px rgba(24, 34, 53, 0.08);
+  --shadow-lift: 0 24px 70px rgba(21, 88, 214, 0.16), 0 6px 20px rgba(24, 34, 53, 0.08);
 
   --layout-max: 1180px;
-  --transition-fast: 160ms ease;
-  --transition-base: 240ms ease;
+  --transition-fast: 180ms ease;
+  --transition-base: 260ms ease;
 }

@@ -1,43 +1,82 @@
 <%- include("../partials/header", { title: `Share ${folder.name}` }) %>
-<p><a href="/folders/<%= folder.id %>">Back</a></p>
-<h1>Share "<%= folder.name %>"</h1>
-<p>Anyone with a link can view this folder and its subfolders until it expires. They cannot upload, rename, or delete anything.</p>
 
-<% if (errors?.form) { %><p role="alert"><%= errors.form %></p><% } %>
-<form action="/folders/<%= folder.id %>/share" method="post" novalidate>
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <div>
-    <label for="days">Link lasts (days)</label>
-    <input id="days" name="days" type="number" min="1" max="365" value="<%= values?.days ?? 7 %>" required>
-    <% if (errors?.days) { %><p role="alert"><%= errors.days %></p><% } %>
+<div class="form-page form-page--wide">
+  <a class="back-link" href="/folders/<%= folder.id %>">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="m15 6-6 6 6 6"></path>
+    </svg>
+    Back
+  </a>
+
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Folder sharing</p>
+      <h1>Share "<%= folder.name %>"</h1>
+      <p class="page-header__meta">Anyone with a link can view this folder and its subfolders until it expires. They cannot upload, rename, or delete anything.</p>
+    </div>
   </div>
-  <button type="submit">Create link</button>
-</form>
 
-<section>
-  <h2>Links</h2>
-  <% if (links.length > 0) { %>
-    <ul>
-      <% links.forEach((link) => { %>
-        <% const expired = link.expiresAt.getTime() <= Date.now(); %>
-        <li>
-          <p>
-            <a href="<%= origin %>/share/<%= link.token %>"><%= origin %>/share/<%= link.token %></a>
-          </p>
-          <p>
-            <% if (expired) { %>Expired<% } else { %>Expires<% } %>
-            <%= link.expiresAt.toUTCString() %>
-          </p>
-          <form action="/folders/<%= folder.id %>/share/<%= link.id %>/revoke" method="post" onsubmit="return confirm('Revoke this link?')">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button type="submit">Revoke</button>
-          </form>
-        </li>
-      <% }); %>
-    </ul>
-  <% } else { %>
-    <p>No links yet.</p>
-  <% } %>
-</section>
+  <section class="panel form-panel" aria-labelledby="create-link-title">
+    <h2 id="create-link-title">Create a link</h2>
+
+    <% if (errors?.form) { %>
+      <p class="form-alert" role="alert">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7.5v5.5M12 16.5h.01"></path>
+        </svg>
+        <span><%= errors.form %></span>
+      </p>
+    <% } %>
+
+    <form class="form form--inline" action="/folders/<%= folder.id %>/share" method="post" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-field">
+        <label for="days">Link lasts (days)</label>
+        <input id="days" name="days" type="number" min="1" max="365" value="<%= values?.days ?? 7 %>" required<% if (errors?.days) { %> aria-invalid="true" aria-describedby="days-error"<% } %>>
+        <% if (errors?.days) { %><p class="field-error" id="days-error"><%= errors.days %></p><% } %>
+      </div>
+      <button class="button button--primary" type="submit">Create link</button>
+    </form>
+  </section>
+
+  <section class="content-section" aria-labelledby="links-title">
+    <div class="section-heading">
+      <h2 id="links-title">Links</h2>
+    </div>
+
+    <% if (links.length > 0) { %>
+      <ul class="link-list">
+        <% links.forEach((link) => { %>
+          <% const expired = link.expiresAt.getTime() <= Date.now(); %>
+          <li class="link-card">
+            <div class="link-card__main">
+              <a class="link-card__url" href="<%= origin %>/share/<%= link.token %>" title="<%= origin %>/share/<%= link.token %>"><%= origin %>/share/<%= link.token %></a>
+              <p class="link-card__expiry">
+                <span class="status-dot<%= expired ? " status-dot--expired" : "" %>" aria-hidden="true"></span>
+                <% if (expired) { %>Expired<% } else { %>Expires<% } %>
+                <%= link.expiresAt.toUTCString() %>
+              </p>
+            </div>
+            <form action="/folders/<%= folder.id %>/share/<%= link.id %>/revoke" method="post" onsubmit="return confirm('Revoke this link?')">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="button button--danger button--small" type="submit">Revoke</button>
+            </form>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %>
+      <div class="empty-state">
+        <span class="empty-state__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+            <path d="M10 13a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7L11 6.3"></path>
+            <path d="M14 11a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.8-1.8"></path>
+          </svg>
+        </span>
+        <p>No links yet.</p>
+      </div>
+    <% } %>
+  </section>
+</div>
 
 <%- include("../partials/footer") %>

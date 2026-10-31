@@ -1,45 +1,80 @@
 <%- include("../partials/header", { title: file.name }) %>
-<p>
-  <a href="<%= file.folderId ? `/folders/${file.folderId}` : "/folders" %>">Back</a>
-</p>
-<h1><%= file.name %></h1>
 
-<dl>
-  <dt>Size</dt>
-  <dd><%= formatBytes(file.size) %></dd>
-  <dt>Type</dt>
-  <dd><%= file.mimeType %></dd>
-  <dt>Uploaded</dt>
-  <dd><%= file.createdAt.toUTCString() %></dd>
-  <dt>Folder</dt>
-  <dd>
-    <% if (file.folder) { %>
-      <a href="/folders/<%= file.folder.id %>"><%= file.folder.name %></a>
-    <% } else { %>
-      My drive
+<div class="page-header">
+  <div class="page-header__title">
+    <a class="back-link" href="<%= file.folderId ? `/folders/${file.folderId}` : "/folders" %>">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="m15 6-6 6 6 6"></path>
+      </svg>
+      Back
+    </a>
+    <div class="page-header__name">
+      <span class="page-header__file-icon" aria-hidden="true">
+        <%- include("../partials/file-icon", { mimeType: file.mimeType }) %>
+      </span>
+      <h1><%= file.name %></h1>
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <a class="button button--primary" href="/files/<%= file.id %>/download">Download</a>
+    <a class="button button--secondary" href="/files/<%= file.id %>/edit">Rename or move</a>
+  </div>
+</div>
+
+<div class="file-layout<%= isPreviewable(file.mimeType) ? "" : " file-layout--single" %>">
+  <div class="file-layout__main">
+    <% if (isPreviewable(file.mimeType)) { %>
+      <section class="panel file-preview" aria-labelledby="preview-title">
+        <div class="section-heading">
+          <h2 id="preview-title">Preview</h2>
+        </div>
+        <% if (file.mimeType.startsWith("image/")) { %>
+          <img src="/files/<%= file.id %>/preview" alt="<%= file.name %>" class="file-preview__image">
+        <% } else { %>
+          <iframe src="/files/<%= file.id %>/preview" title="Preview of <%= file.name %>" class="file-preview__frame"></iframe>
+        <% } %>
+      </section>
     <% } %>
-  </dd>
-</dl>
 
-<% if (isPreviewable(file.mimeType)) { %>
-  <section>
-    <h2>Preview</h2>
-    <% if (file.mimeType.startsWith("image/")) { %>
-      <img src="/files/<%= file.id %>/preview" alt="<%= file.name %>">
-    <% } else { %>
-      <iframe src="/files/<%= file.id %>/preview" title="Preview of <%= file.name %>"></iframe>
-    <% } %>
-  </section>
-<% } %>
+    <section class="panel danger-zone" aria-labelledby="danger-title">
+      <div>
+        <h2 id="danger-title">Delete file</h2>
+        <p>This removes the file from your drive. This action cannot be undone.</p>
+      </div>
+      <form action="/files/<%= file.id %>/delete" method="post" onsubmit="return confirm('Delete this file?')">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="button button--danger" type="submit">Delete file</button>
+      </form>
+    </section>
+  </div>
 
-<p>
-  <a href="/files/<%= file.id %>/download">Download</a>
-  <a href="/files/<%= file.id %>/edit">Rename or move</a>
-</p>
-
-<form action="/files/<%= file.id %>/delete" method="post" onsubmit="return confirm('Delete this file?')">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button type="submit">Delete file</button>
-</form>
+  <aside class="panel file-details" aria-labelledby="details-title">
+    <h2 id="details-title">Details</h2>
+    <dl class="details-list">
+      <div>
+        <dt>Size</dt>
+        <dd><%= formatBytes(file.size) %></dd>
+      </div>
+      <div>
+        <dt>Type</dt>
+        <dd><%= file.mimeType %></dd>
+      </div>
+      <div>
+        <dt>Uploaded</dt>
+        <dd><time datetime="<%= file.createdAt.toISOString() %>"><%= file.createdAt.toUTCString() %></time></dd>
+      </div>
+      <div>
+        <dt>Folder</dt>
+        <dd>
+          <% if (file.folder) { %>
+            <a href="/folders/<%= file.folder.id %>"><%= file.folder.name %></a>
+          <% } else { %>
+            My drive
+          <% } %>
+        </dd>
+      </div>
+    </dl>
+  </aside>
+</div>
 
 <%- include("../partials/footer") %>

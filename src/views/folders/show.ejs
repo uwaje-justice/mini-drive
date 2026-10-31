@@ -1,66 +1,112 @@
 <%- include("../partials/header", { title: folder.name }) %>
-<p>
-  <a href="<%= folder.parentId ? `/folders/${folder.parentId}` : "/folders" %>">Back</a>
-</p>
-<nav aria-label="Breadcrumb">
-  <ol>
-    <% breadcrumbs.forEach((crumb, index) => { %>
-      <li>
-        <% if (crumb.id === null) { %>
-          <a href="/folders">My drive</a>
-        <% } else if (index < breadcrumbs.length - 1) { %>
-          <a href="/folders/<%= crumb.id %>"><%= crumb.name %></a>
-        <% } else { %>
-          <span><%= crumb.name %></span>
-        <% } %>
-      </li>
-    <% }); %>
-  </ol>
-</nav>
-<h1><%= folder.name %></h1>
 
-<p>
-  <a href="/folders/new?parentId=<%= folder.id %>">New folder</a>
-  <a href="/folders/<%= folder.id %>/edit">Rename</a>
-  <a href="/folders/<%= folder.id %>/move">Move</a>
-  <a href="/folders/<%= folder.id %>/share">Share</a>
-</p>
+<div class="page-header">
+  <div>
+    <a class="back-link" href="<%= folder.parentId ? `/folders/${folder.parentId}` : "/folders" %>">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="m15 6-6 6 6 6"></path>
+      </svg>
+      Back
+    </a>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <ol>
+        <% breadcrumbs.forEach((crumb, index) => { %>
+          <li>
+            <% if (crumb.id === null) { %>
+              <a href="/folders">My drive</a>
+            <% } else if (index < breadcrumbs.length - 1) { %>
+              <a href="/folders/<%= crumb.id %>"><%= crumb.name %></a>
+            <% } else { %>
+              <span aria-current="page"><%= crumb.name %></span>
+            <% } %>
+          </li>
+        <% }); %>
+      </ol>
+    </nav>
+    <h1><%= folder.name %></h1>
+    <p class="page-header__meta">
+      <%= folderPagination.total %> folders · <%= filePagination.total %> files
+    </p>
+  </div>
+  <div class="page-header__actions">
+    <a class="button button--primary" href="/folders/new?parentId=<%= folder.id %>">New folder</a>
+    <a class="button button--secondary" href="#upload">Upload files</a>
+    <details class="menu">
+      <summary class="button button--secondary">
+        More
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="m6 9 6 6 6-6"></path>
+        </svg>
+      </summary>
+      <div class="menu__panel">
+        <a class="menu__item" href="/folders/<%= folder.id %>/edit">Rename</a>
+        <a class="menu__item" href="/folders/<%= folder.id %>/move">Move</a>
+        <a class="menu__item" href="/folders/<%= folder.id %>/share">Share</a>
+        <form action="/folders/<%= folder.id %>/delete" method="post" onsubmit="return confirm('Delete this folder and all its files?')">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="menu__item menu__item--danger" type="submit">Delete folder</button>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
 
-<section>
-  <h2>Folders</h2>
-  <%- include("../partials/folder-list", { folders }) %>
-  <%- include("../partials/pagination", { pagination: folderPagination, paramName: "folderPage", basePath: `/folders/${folder.id}`, label: "Folder pages" }) %>
-</section>
+<section class="panel upload-panel" id="upload" aria-labelledby="upload-title">
+  <div class="upload-panel__heading">
+    <span class="upload-panel__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+        <path d="M12 16V4m0 0L7 9m5-5 5 5"></path>
+        <path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"></path>
+      </svg>
+    </span>
+    <div>
+      <h2 id="upload-title">Upload files</h2>
+      <p>Add up to 10 files to this folder. Each file can be up to 5 MB.</p>
+    </div>
+  </div>
 
-<section>
-  <h2>Files</h2>
-  <%- include("../partials/file-list", { files }) %>
-  <%- include("../partials/pagination", { pagination: filePagination, paramName: "page", basePath: `/folders/${folder.id}`, label: "File pages" }) %>
-</section>
-
-<section>
-  <h2>Upload a file</h2>
   <% if (typeof uploadErrors !== "undefined" && uploadErrors.length > 0) { %>
-    <ul role="alert">
+    <ul class="notice notice--error" role="alert">
       <% uploadErrors.forEach((message) => { %>
         <li><%= message %></li>
       <% }); %>
     </ul>
   <% } %>
-  <form action="/files/upload" method="post" enctype="multipart/form-data">
+
+  <form class="upload-form" action="/files/upload" method="post" enctype="multipart/form-data">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <input type="hidden" name="folderId" value="<%= folder.id %>">
-    <div>
-      <label for="files">Files</label>
+    <label class="file-drop" for="files">
+      <span class="file-drop__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+          <path d="M12 15V4m0 0L8 8m4-4 4 4"></path>
+          <path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"></path>
+        </svg>
+      </span>
+      <span class="file-drop__title">Add files from your device</span>
+      <span class="file-drop__hint">PNG, JPEG, WebP, GIF, PDF, or plain text</span>
       <input id="files" name="files" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,.txt" multiple required>
-    </div>
-    <button type="submit">Upload</button>
+    </label>
+    <button class="button button--primary" type="submit">Upload</button>
   </form>
 </section>
 
-<form action="/folders/<%= folder.id %>/delete" method="post" onsubmit="return confirm('Delete this folder and all its files?')">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <button type="submit">Delete folder</button>
-</form>
+<section class="content-section" aria-labelledby="folders-title">
+  <div class="section-heading">
+    <h2 id="folders-title">Folders</h2>
+    <span class="section-heading__count"><%= folderPagination.total %></span>
+  </div>
+  <%- include("../partials/folder-list", { folders }) %>
+  <%- include("../partials/pagination", { pagination: folderPagination, paramName: "folderPage", basePath: `/folders/${folder.id}`, label: "Folder pages" }) %>
+</section>
+
+<section class="content-section" aria-labelledby="files-title">
+  <div class="section-heading">
+    <h2 id="files-title">Files</h2>
+    <span class="section-heading__count"><%= filePagination.total %></span>
+  </div>
+  <%- include("../partials/file-list", { files }) %>
+  <%- include("../partials/pagination", { pagination: filePagination, paramName: "page", basePath: `/folders/${folder.id}`, label: "File pages" }) %>
+</section>
 
 <%- include("../partials/footer") %>

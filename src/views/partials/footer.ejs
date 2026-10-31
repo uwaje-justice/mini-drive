@@ -1,5 +1,15 @@
+  <%
+    const isLanding = typeof landing !== "undefined" && landing;
+    const isAuth = typeof authPage !== "undefined" && authPage;
+    const isShare = typeof currentPath !== "undefined" && currentPath.startsWith("/share/");
+    const isApp = !isLanding && !isAuth && !isShare
+      && typeof currentUser !== "undefined" && currentUser;
+  %>
+  <% if (isApp) { %>
+      </div>
+  <% } %>
   </main>
-  <% if (typeof landing !== "undefined" && landing) { %>
+  <% if (isLanding) { %>
     <footer class="site-footer">
       <div class="container site-footer__inner">
         <div>

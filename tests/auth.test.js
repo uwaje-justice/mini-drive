@@ -8,6 +8,7 @@ import {
   postForm,
   registerUser,
   testPassword,
+  uniqueEmail,
 } from "./helpers.js";
 
 test("home page welcomes guests", async () => {
@@ -117,9 +118,37 @@ test("registration creates a user, hashes the password, and starts a session", a
   assert.match(page.text, /Open my drive/);
   assert.match(page.text, /\/folders/);
 
-  const loginPage = await client.get("/auth/login");
-  assert.equal(loginPage.status, 302);
-  assert.equal(loginPage.headers.location, "/");
+  for (const path of ["/auth/login", "/auth/register"]) {
+    const authPage = await client.get(path);
+
+    assert.equal(authPage.status, 302);
+    assert.equal(authPage.headers.location, "/folders");
+  }
+});
+
+test("successful login and registration send users to the drive", async () => {
+  const user = await registerUser(createAgent(), "redirect-login");
+  onTestFinished(() => cleanupUser(user));
+
+  const loginResponse = await postForm(createAgent(), "/auth/login", {
+    email: user.email,
+    password: testPassword,
+  });
+
+  assert.equal(loginResponse.status, 302);
+  assert.equal(loginResponse.headers.location, "/folders");
+
+  const email = uniqueEmail("redirect-register");
+  const registerResponse = await postForm(createAgent(), "/auth/register", {
+    email,
+    password: testPassword,
+    confirmPassword: testPassword,
+  });
+  const registeredUser = await prisma.user.findUnique({ where: { email } });
+  onTestFinished(() => cleanupUser(registeredUser));
+
+  assert.equal(registerResponse.status, 302);
+  assert.equal(registerResponse.headers.location, "/folders");
 });
 
 test("registration rejects a duplicate email", async () => {

@@ -1,10 +1,31 @@
 <% const base = typeof folderBasePath !== "undefined" ? folderBasePath : "/folders"; %>
 <% if (folders.length > 0) { %>
-  <ul>
+  <div class="folder-grid">
     <% folders.forEach((folder) => { %>
-      <li><a href="<%= base %>/<%= folder.id %>"><%= folder.name %></a></li>
+      <a class="folder-card" href="<%= base %>/<%= folder.id %>">
+        <span class="folder-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" focusable="false">
+            <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" fill="currentColor" opacity="0.18"></path>
+            <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <span class="folder-card__text">
+          <span class="folder-card__name" title="<%= folder.name %>"><%= folder.name %></span>
+          <span class="folder-card__meta">Folder</span>
+        </span>
+        <svg class="folder-card__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="m9 6 6 6-6 6"></path>
+        </svg>
+      </a>
     <% }); %>
-  </ul>
+  </div>
 <% } else { %>
-  <p>No folders here yet.</p>
+  <div class="empty-state">
+    <span class="empty-state__icon empty-state__icon--folder" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" focusable="false">
+        <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path>
+      </svg>
+    </span>
+    <p>No folders here yet.</p>
+  </div>
 <% } %>

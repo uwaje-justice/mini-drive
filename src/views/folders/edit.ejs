@@ -1,13 +1,45 @@
 <%- include("../partials/header", { title: "Rename folder" }) %>
-<h1>Rename folder</h1>
-<% if (errors?.name) { %><p role="alert"><%= errors.name %></p><% } %>
-<form action="" method="post" novalidate>
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <div>
-    <label for="name">Folder name</label>
-    <input id="name" name="name" type="text" maxlength="100" value="<%= values?.name ?? "" %>" required>
+
+<div class="form-page">
+  <a class="back-link" href="/folders/<%= folder.id %>">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+      <path d="m15 6-6 6 6 6"></path>
+    </svg>
+    Back
+  </a>
+
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Folder settings</p>
+      <h1>Rename folder</h1>
+      <p class="page-header__meta">Choose a new name for this folder.</p>
+    </div>
   </div>
-  <button type="submit">Save</button>
-</form>
-<p><a href="/folders">Cancel</a></p>
+
+  <section class="panel form-panel">
+    <% if (errors?.name) { %>
+      <p class="form-alert" role="alert">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7.5v5.5M12 16.5h.01"></path>
+        </svg>
+        <span><%= errors.name %></span>
+      </p>
+    <% } %>
+
+    <form class="form" action="" method="post" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="form-field">
+        <label for="name">Folder name</label>
+        <input id="name" name="name" type="text" maxlength="100" value="<%= values?.name ?? "" %>" required<% if (errors?.name) { %> aria-invalid="true" aria-describedby="name-error"<% } %>>
+        <% if (errors?.name) { %><p class="field-error" id="name-error"><%= errors.name %></p><% } %>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit">Save name</button>
+        <a class="text-button" href="/folders/<%= folder.id %>">Cancel</a>
+      </div>
+    </form>
+  </section>
+</div>
+
 <%- include("../partials/footer") %>

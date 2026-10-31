@@ -2,8 +2,10 @@ import passport from "../config/passport.js";
 import authService from "../services/auth-service.js";
 import ConflictError from "../errors/conflict-error.js";
 
+const driveHome = "/folders";
+
 const showRegister = (req, res) => {
-  if (req.user) return res.redirect("/");
+  if (req.user) return res.redirect(driveHome);
 
   return res.render("auth/register", { errors: {}, values: {} });
 };
@@ -16,7 +18,7 @@ const register = async (req, res, next) => {
 
     return req.login(user, (error) => {
       if (error) return next(error);
-      return res.redirect("/");
+      return res.redirect(driveHome);
     });
   } catch (error) {
     if (error instanceof ConflictError) {
@@ -31,7 +33,7 @@ const register = async (req, res, next) => {
 };
 
 const showLogin = (req, res) => {
-  if (req.user) return res.redirect("/");
+  if (req.user) return res.redirect(driveHome);
 
   return res.render("auth/login", { errors: {}, values: {} });
 };
@@ -49,7 +51,7 @@ const login = (req, res, next) => {
 
     return req.login(user, (loginError) => {
       if (loginError) return next(loginError);
-      return res.redirect("/");
+      return res.redirect(driveHome);
     });
   })(req, res, next);
 };

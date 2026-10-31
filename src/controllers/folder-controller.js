@@ -50,13 +50,18 @@ const create = async (req, res, next) => {
   }
 };
 
-const editForm = async (req, res) => {
+const loadEditPage = async (req) => {
   const folder = await folderService.getFolder(req.user.id, req.params.id);
 
-  return res.render("folders/edit", {
+  return {
+    folder,
     errors: {},
     values: { name: folder.name },
-  });
+  };
+};
+
+const editForm = async (req, res) => {
+  return res.render("folders/edit", await loadEditPage(req));
 };
 
 const update = async (req, res, next) => {
@@ -70,7 +75,10 @@ const update = async (req, res, next) => {
     return res.redirect(`/folders/${folder.id}`);
   } catch (error) {
     if (error instanceof ConflictError) {
+      const page = await loadEditPage(req);
+
       return res.status(409).render("folders/edit", {
+        ...page,
         errors: { name: error.message },
         values: { name },
       });
@@ -135,6 +143,7 @@ export default {
   show,
   newForm,
   create,
+  loadEditPage,
   editForm,
   update,
   loadMovePage,

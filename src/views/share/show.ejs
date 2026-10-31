@@ -1,37 +1,58 @@
 <%- include("../partials/header", { title: `Shared: ${folder.name}` }) %>
-<% if (folder.id !== share.folderId) { %>
-  <p><a href="/share/<%= share.token %>/folders/<%= folder.parentId %>">Back</a></p>
-<% } %>
-<nav aria-label="Breadcrumb">
-  <ol>
-    <% breadcrumbs.forEach((crumb, index) => { %>
-      <li>
-        <% if (crumb.id === null) { %>
-          <a href="/share/<%= share.token %>">My drive</a>
-        <% } else if (index < breadcrumbs.length - 1) { %>
-          <a href="/share/<%= share.token %>/folders/<%= crumb.id %>"><%= crumb.name %></a>
-        <% } else { %>
-          <span><%= crumb.name %></span>
-        <% } %>
-      </li>
-    <% }); %>
-  </ol>
-</nav>
-<h1><%= folder.name %></h1>
-<p>This folder is shared with you. You can view and download its files.</p>
 
-<% const shareBasePath = folder.id === share.folderId ? `/share/${share.token}` : `/share/${share.token}/folders/${folder.id}`; %>
+<div class="container shared-page">
+  <% if (folder.id !== share.folderId) { %>
+    <a class="back-link" href="/share/<%= share.token %>/folders/<%= folder.parentId %>">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="m15 6-6 6 6 6"></path>
+      </svg>
+      Back
+    </a>
+  <% } %>
 
-<section>
-  <h2>Folders</h2>
-  <%- include("../partials/folder-list", { folders, folderBasePath: `/share/${share.token}/folders` }) %>
-  <%- include("../partials/pagination", { pagination: folderPagination, paramName: "folderPage", basePath: shareBasePath, label: "Folder pages" }) %>
-</section>
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <% breadcrumbs.forEach((crumb, index) => { %>
+        <li>
+          <% if (crumb.id === null) { %>
+            <a href="/share/<%= share.token %>">My drive</a>
+          <% } else if (index < breadcrumbs.length - 1) { %>
+            <a href="/share/<%= share.token %>/folders/<%= crumb.id %>"><%= crumb.name %></a>
+          <% } else { %>
+            <span aria-current="page"><%= crumb.name %></span>
+          <% } %>
+        </li>
+      <% }); %>
+    </ol>
+  </nav>
 
-<section>
-  <h2>Files</h2>
-  <%- include("../partials/file-list", { files, fileBasePath: `/share/${share.token}/files`, fileDetails: false }) %>
-  <%- include("../partials/pagination", { pagination: filePagination, paramName: "page", basePath: shareBasePath, label: "File pages" }) %>
-</section>
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Shared folder</p>
+      <h1><%= folder.name %></h1>
+      <p class="page-header__meta">This folder is shared with you. You can view and download its files.</p>
+    </div>
+  </div>
+
+  <% const shareBasePath = folder.id === share.folderId ? `/share/${share.token}` : `/share/${share.token}/folders/${folder.id}`; %>
+
+  <section class="content-section" aria-labelledby="folders-title">
+    <div class="section-heading">
+      <h2 id="folders-title">Folders</h2>
+      <span class="section-heading__count"><%= folderPagination.total %></span>
+    </div>
+    <%- include("../partials/folder-list", { folders, folderBasePath: `/share/${share.token}/folders` }) %>
+    <%- include("../partials/pagination", { pagination: folderPagination, paramName: "folderPage", basePath: shareBasePath, label: "Folder pages" }) %>
+  </section>
+
+  <section class="content-section" aria-labelledby="files-title">
+    <div class="section-heading">
+      <h2 id="files-title">Files</h2>
+      <span class="section-heading__count"><%= filePagination.total %></span>
+    </div>
+    <%- include("../partials/file-list", { files, fileBasePath: `/share/${share.token}/files`, fileDetails: false }) %>
+    <%- include("../partials/pagination", { pagination: filePagination, paramName: "page", basePath: shareBasePath, label: "File pages" }) %>
+  </section>
+</div>
 
 <%- include("../partials/footer") %>

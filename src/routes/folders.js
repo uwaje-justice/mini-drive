@@ -28,7 +28,7 @@ router.get("/:id/edit", folderController.editForm);
 router.post(
   "/:id/edit",
   folderRules,
-  validate("folders/edit"),
+  validate("folders/edit", folderController.loadEditPage),
   folderController.update,
 );
 router.get("/:id/move", folderController.moveForm);

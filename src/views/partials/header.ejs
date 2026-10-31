@@ -1,6 +1,9 @@
 <%
   const isLanding = typeof landing !== "undefined" && landing;
   const isAuth = typeof authPage !== "undefined" && authPage;
+  const isShare = typeof currentPath !== "undefined" && currentPath.startsWith("/share/");
+  const isApp = !isLanding && !isAuth && !isShare && typeof currentUser !== "undefined" && currentUser;
+  const showSearchBar = isApp && currentPath === "/search";
   const pageTitle = typeof title !== "undefined" ? title : "mini drive";
   const pageDescription = typeof description !== "undefined"
     ? description
@@ -11,7 +14,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="<%= isApp ? "#f6f8fc" : "#ffffff" %>">
   <meta name="description" content="<%= pageDescription %>">
   <meta name="csrf-token" content="<%= typeof csrfToken !== "undefined" ? csrfToken : "" %>">
   <title><%= pageTitle %></title>
@@ -26,10 +29,17 @@
     <link rel="stylesheet" href="/css/auth.css">
     <script src="/js/auth-validation.js" defer></script>
   <% } %>
+  <% if (isShare) { %>
+    <link rel="stylesheet" href="/css/drive.css">
+  <% } %>
+  <% if (isApp) { %>
+    <link rel="stylesheet" href="/css/drive.css">
+    <link rel="stylesheet" href="/css/app.css">
+  <% } %>
 </head>
-<body<% if (isLanding) { %> class="landing-page"<% } else if (isAuth) { %> class="auth-page"<% } %>>
+<body<% if (isLanding) { %> class="landing-page"<% } else if (isAuth) { %> class="auth-page"<% } else if (isApp) { %> class="app-page"<% } %>>
   <a class="skip-link" href="#main">Skip to content</a>
-  <% if (!isAuth) { %>
+  <% if (!isAuth && !isApp) { %>
     <header class="site-header">
       <div class="site-header__inner">
         <a class="brand" href="/" aria-label="mini drive home">
@@ -70,4 +80,13 @@
       </div>
     </header>
   <% } %>
-  <main id="main">
+  <% if (isApp) { %>
+    <%- include("app-sidebar") %>
+  <% } %>
+  <main id="main"<% if (isApp) { %> class="app-main"<% } %>>
+    <% if (isApp) { %>
+      <% if (showSearchBar) { %>
+        <%- include("app-topbar") %>
+      <% } %>
+      <div class="app-content">
+    <% } %>
