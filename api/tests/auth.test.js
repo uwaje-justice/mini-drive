@@ -134,7 +134,7 @@ test("unknown API routes and health checks return JSON", async () => {
 
   assert.equal(missing.status, 404);
   assert.equal(missing.body.error.code, "NOT_FOUND");
-  assert.equal(missing.body.error.message, "API route not found.");
+  assert.equal(missing.body.error.message, "Route not found.");
   assert.equal(health.status, 200);
   assert.deepEqual(health.body.data, { status: "ok" });
 });

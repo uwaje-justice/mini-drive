@@ -1,6 +1,5 @@
 import { Router } from "express";
 
-import notFound from "../middleware/api-not-found.js";
 import apiHeaders from "../middleware/headers.js";
 import { sendData } from "../responses.js";
 import authRouter from "./auth-routes.js";
@@ -20,6 +19,5 @@ router.use("/folders", foldersRouter);
 router.use("/files", filesRouter);
 router.use("/search", searchRouter);
 router.use("/public/shares", publicSharesRouter);
-router.use(notFound);
 
 export default router;
