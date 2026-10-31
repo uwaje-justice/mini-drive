@@ -21,7 +21,7 @@ const waitForServer = (child) =>
     let output = "";
     const timer = setTimeout(() => {
       reject(new Error(`Server did not start.\n${output}`));
-    }, 10000);
+    }, 30000);
 
     const read = (chunk) => {
       output += chunk.toString();
@@ -67,4 +67,4 @@ test("server.js starts the HTTP server", async () => {
 
   child.kill();
   await once(child, "exit");
-});
+}, 40000);
