@@ -3,12 +3,12 @@ import { Router } from "express";
 import notFound from "../middleware/api-not-found.js";
 import apiHeaders from "../middleware/headers.js";
 import { sendData } from "../responses.js";
-import authRouter from "./auth.js";
-import driveRouter from "./drive.js";
-import filesRouter from "./files.js";
-import foldersRouter from "./folders.js";
-import publicSharesRouter from "./public-shares.js";
-import searchRouter from "./search.js";
+import authRouter from "./auth-routes.js";
+import driveRouter from "./drive-routes.js";
+import filesRouter from "./files-routes.js";
+import foldersRouter from "./folders-routes.js";
+import publicSharesRouter from "./public-shares-routes.js";
+import searchRouter from "./search-routes.js";
 
 const router = Router();
 

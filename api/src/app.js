@@ -5,7 +5,7 @@ import sessionMiddleware from "./config/session.js";
 import { csrfProtection } from "./middleware/csrf.js";
 import errorHandler from "./middleware/error-handler.js";
 import notFound from "./middleware/not-found.js";
-import apiRouter from "./routes/index.js";
+import apiRouter from "./routes/index-routes.js";
 
 const app = express();
 

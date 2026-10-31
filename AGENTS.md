@@ -82,7 +82,7 @@ API:
 
 - `api/src/app.js` creates the API app and exports it for tests.
 - `api/src/server.js` reads `PORT` and starts the HTTP server.
-- `api/src/routes/` wires URLs only. `api/src/controllers/` calls services and sends JSON or binary responses.
+- `api/src/routes/` wires URLs only. Route files end in `-routes.js`; `index-routes.js` combines them. `api/src/controllers/` calls services and sends JSON or binary responses.
 - `api/src/serializers.js` defines every response shape. Never return Prisma rows directly.
 - `api/src/responses.js` holds the JSON success and error helpers.
 - `api/src/middleware/` holds app-wide CSRF, upload, 404, and error handling, plus API auth, validation, headers, and the API-router 404.
