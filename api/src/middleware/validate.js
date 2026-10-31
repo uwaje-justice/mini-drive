@@ -1,5 +1,7 @@
 import { matchedData, validationResult } from "express-validator";
 
+import ValidationError from "../errors/validation-error.js";
+
 const validate = (req, res, next) => {
   const result = validationResult(req);
 
@@ -9,16 +11,10 @@ const validate = (req, res, next) => {
       {},
     );
 
-    return res.status(422).json({
-      error: {
-        code: "VALIDATION_ERROR",
-        message: "Check the highlighted fields.",
-        fields,
-      },
-    });
+    return next(new ValidationError(fields));
   }
 
-  req.matchedData = matchedData(req, { locations: ["body"] });
+  req.validated = matchedData(req, { locations: ["body"] });
   return next();
 };
 

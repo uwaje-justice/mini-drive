@@ -169,11 +169,36 @@ test("file upload rejects missing, oversized, and over-limit batches", async () 
   });
 
   assert.equal(missing.status, 400);
-  assert.match(missing.body.error.message, /Choose a file/);
+  assert.equal(missing.headers["cache-control"], "no-store");
+  assert.match(missing.body.error.message, /No files were uploaded/);
   assert.equal(oversized.status, 413);
+  assert.equal(oversized.headers["x-content-type-options"], "nosniff");
   assert.match(oversized.body.error.message, /5 MB or smaller/);
   assert.equal(tooMany.status, 400);
-  assert.match(tooMany.body.error.message, /up to 10 files/);
+  assert.match(tooMany.body.error.message, /at most 10 files/);
+  assert.equal(await prisma.file.count({ where: { ownerId: user.id } }), 0);
+});
+
+test("file upload rejects a malformed folder field", async () => {
+  const client = createAgent();
+  const user = await registerApiUser(client, "api-files-folder-field");
+  onTestFinished(() => cleanupUser(user));
+
+  const token = await getApiCsrfToken(client);
+  const response = await client
+    .post("/api/files")
+    .set("x-csrf-token", token)
+    .field("folderId", "one")
+    .field("folderId", "two")
+    .attach("files", bytes.text, {
+      filename: "notes.txt",
+      contentType: "text/plain",
+    });
+
+  assert.equal(response.status, 422);
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.body.error.code, "VALIDATION_ERROR");
+  assert.match(response.body.error.fields.folderId, /invalid/i);
   assert.equal(await prisma.file.count({ where: { ownerId: user.id } }), 0);
 });
 

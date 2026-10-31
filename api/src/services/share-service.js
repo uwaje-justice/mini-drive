@@ -8,7 +8,7 @@ const dayInMs = 24 * 60 * 60 * 1000;
 
 const shareNotFound = () => new NotFoundError("Share link not found or expired.");
 
-const getSharePage = async (ownerId, folderId) => {
+const listShareLinks = async (ownerId, folderId) => {
   const folder = await folderService.getFolder(ownerId, folderId);
 
   const links = await prisma.shareLink.findMany({
@@ -102,7 +102,7 @@ const getSharedFile = async (token, fileId) => {
 };
 
 export default {
-  getSharePage,
+  listShareLinks,
   createShareLink,
   revokeShareLink,
   getSharedContents,

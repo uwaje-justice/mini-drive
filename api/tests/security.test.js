@@ -36,8 +36,11 @@ test("API mutations reject missing and invalid CSRF tokens", async () => {
   const session = await client.get("/api/auth/session");
 
   assert.equal(missing.status, 403);
+  assert.equal(missing.headers["cache-control"], "no-store");
+  assert.equal(missing.headers["x-content-type-options"], "nosniff");
   assert.equal(missing.body.error.code, "CSRF_INVALID");
   assert.equal(invalid.status, 403);
+  assert.equal(invalid.headers["cache-control"], "no-store");
   assert.equal(invalid.body.error.code, "CSRF_INVALID");
   assert.equal(session.body.data.user.id, user.id);
   assert.equal(

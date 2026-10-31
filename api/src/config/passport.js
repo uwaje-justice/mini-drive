@@ -1,23 +1,20 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 
-import UnauthorizedError from "../errors/unauthorized-error.js";
 import authService from "../services/auth-service.js";
 
-const invalidCredentials = new UnauthorizedError("Invalid email or password.")
-  .message;
+const invalidCredentials = "Invalid email or password.";
 
 passport.use(
   new LocalStrategy(
-    { usernameField: "email", passReqToCallback: true },
-    async (req, email, password, done) => {
+    { usernameField: "email" },
+    async (email, password, done) => {
       try {
-        const { email: safeEmail, password: safePassword } = req.matchedData;
-        const user = await authService.findByEmail(safeEmail);
+        const user = await authService.findByEmail(email);
 
         if (!user) return done(null, false, { message: invalidCredentials });
 
-        const isValid = await authService.verifyPassword(user, safePassword);
+        const isValid = await authService.verifyPassword(user, password);
 
         if (!isValid) return done(null, false, { message: invalidCredentials });
 

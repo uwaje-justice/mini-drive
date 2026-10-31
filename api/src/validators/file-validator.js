@@ -17,4 +17,11 @@ const moveRules = [
     .withMessage("Folder is invalid."),
 ];
 
-export default { fileRules, moveRules };
+const uploadRules = [
+  body("folderId")
+    .optional({ values: "falsy" })
+    .isString()
+    .withMessage("Folder is invalid."),
+];
+
+export default { fileRules, moveRules, uploadRules };

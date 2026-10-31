@@ -6,12 +6,18 @@ import uploadFiles from "../middleware/upload.js";
 import validate from "../middleware/validate.js";
 import fileValidator from "../validators/file-validator.js";
 
-const { fileRules, moveRules } = fileValidator;
+const { fileRules, moveRules, uploadRules } = fileValidator;
 const router = Router();
 
 router.use(requireAuth);
 
-router.post("/", uploadFiles, fileController.upload);
+router.post(
+  "/",
+  uploadFiles,
+  uploadRules,
+  validate,
+  fileController.upload,
+);
 router.get("/:id/move-targets", fileController.moveTargets);
 router.get("/:id/download", fileController.download);
 router.get("/:id/preview", fileController.preview);

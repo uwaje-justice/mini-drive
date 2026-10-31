@@ -1,6 +1,4 @@
 import BadRequestError from "../errors/bad-request-error.js";
-import PayloadTooLargeError from "../errors/payload-too-large-error.js";
-import UnsupportedMediaTypeError from "../errors/unsupported-media-type-error.js";
 import isPreviewable from "../lib/preview.js";
 import sendFile from "../lib/send-file.js";
 import { sendData } from "../responses.js";
@@ -8,31 +6,11 @@ import { serializeFile, serializeMoveTarget } from "../serializers.js";
 import fileService from "../services/file-service.js";
 import folderService from "../services/folder-service.js";
 
-const uploadFailure = (error) => {
-  if (error.statusCode === 413) return new PayloadTooLargeError(error.message);
-
-  if (error.statusCode === 415) {
-    return new UnsupportedMediaTypeError(error.message);
-  }
-
-  return new BadRequestError(error.message);
-};
-
 const upload = async (req, res, next) => {
   try {
-    if (req.uploadError) throw uploadFailure(req.uploadError);
+    const { accepted, skipped } = req.upload;
 
-    const folderId =
-      typeof req.body?.folderId === "string" && req.body.folderId
-        ? req.body.folderId
-        : null;
-    const skipped = req.uploadErrors ?? [];
-
-    if (!req.files?.length && skipped.length === 0) {
-      throw new BadRequestError("Choose a file to upload.");
-    }
-
-    if (!req.files?.length) {
+    if (accepted.length === 0) {
       return sendData(
         res,
         {
@@ -45,8 +23,8 @@ const upload = async (req, res, next) => {
 
     const { created, errors } = await fileService.createFiles({
       ownerId: req.user.id,
-      folderId,
-      files: req.files,
+      folderId: req.validated.folderId ?? null,
+      files: accepted,
     });
     const allSkipped = [...skipped, ...errors];
 
@@ -71,14 +49,14 @@ const show = async (req, res) => {
 
 const rename = async (req, res) => {
   const file = await fileService.renameFile(req.user.id, req.params.id, {
-    name: req.matchedData.name,
+    name: req.validated.name,
   });
 
   return sendData(res, { file: serializeFile(file) });
 };
 
 const move = async (req, res) => {
-  const { folderId } = req.matchedData;
+  const { folderId } = req.validated;
   const file = await fileService.moveFile(req.user.id, req.params.id, {
     folderId: folderId || null,
   });

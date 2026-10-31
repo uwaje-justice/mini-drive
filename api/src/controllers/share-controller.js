@@ -11,7 +11,7 @@ import {
 import shareService from "../services/share-service.js";
 
 const index = async (req, res) => {
-  const { folder, links } = await shareService.getSharePage(
+  const { folder, links } = await shareService.listShareLinks(
     req.user.id,
     req.params.id,
   );
@@ -26,7 +26,7 @@ const create = async (req, res) => {
   const link = await shareService.createShareLink(
     req.user.id,
     req.params.id,
-    req.matchedData.days,
+    req.validated.days,
   );
 
   return sendData(res, { link: serializeShareLink(link) }, 201);

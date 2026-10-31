@@ -28,7 +28,7 @@ const show = async (req, res) => {
 };
 
 const create = async (req, res) => {
-  const { name, parentId } = req.matchedData;
+  const { name, parentId } = req.validated;
   const folder = await folderService.createFolder(req.user.id, {
     name,
     parentId: parentId || null,
@@ -41,14 +41,14 @@ const rename = async (req, res) => {
   const folder = await folderService.renameFolder(
     req.user.id,
     req.params.id,
-    { name: req.matchedData.name },
+    { name: req.validated.name },
   );
 
   return sendData(res, { folder: serializeFolder(folder) });
 };
 
 const move = async (req, res) => {
-  const { parentId } = req.matchedData;
+  const { parentId } = req.validated;
   const folder = await folderService.moveFolder(req.user.id, req.params.id, {
     parentId: parentId || null,
   });

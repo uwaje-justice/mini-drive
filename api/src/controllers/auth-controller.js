@@ -1,7 +1,9 @@
 import passport from "../config/passport.js";
+import { sessionCookieName } from "../config/session.js";
 import ConflictError from "../errors/conflict-error.js";
+import UnauthorizedError from "../errors/unauthorized-error.js";
 import { generateCsrfToken } from "../middleware/csrf.js";
-import { sendData, sendError } from "../responses.js";
+import { sendData } from "../responses.js";
 import { serializeUser } from "../serializers.js";
 import authService from "../services/auth-service.js";
 
@@ -14,7 +16,7 @@ const session = (req, res) =>
   sendData(res, sessionData(req, req.user ?? null));
 
 const register = async (req, res, next) => {
-  const { email, password } = req.matchedData;
+  const { email, password } = req.validated;
 
   try {
     const user = await authService.registerUser({ email, password });
@@ -26,9 +28,9 @@ const register = async (req, res, next) => {
     });
   } catch (error) {
     if (error instanceof ConflictError) {
-      return sendError(res, 409, error.code, error.message, {
-        email: error.message,
-      });
+      return next(
+        new ConflictError(error.message, { email: error.message }),
+      );
     }
 
     return next(error);
@@ -40,7 +42,9 @@ const login = (req, res, next) => {
     if (error) return next(error);
 
     if (!user) {
-      return sendError(res, 401, "UNAUTHORIZED", info.message);
+      return next(
+        new UnauthorizedError(info?.message ?? "Invalid email or password."),
+      );
     }
 
     return req.login(user, (loginError) => {
@@ -58,7 +62,7 @@ const logout = (req, res, next) => {
     return req.session.destroy((sessionError) => {
       if (sessionError) return next(sessionError);
 
-      res.clearCookie("connect.sid");
+      res.clearCookie(sessionCookieName);
       return res.status(204).end();
     });
   });

@@ -6,7 +6,10 @@ import prisma from "../lib/prisma.js";
 
 const weekInMs = 7 * 24 * 60 * 60 * 1000;
 
+export const sessionCookieName = "connect.sid";
+
 const sessionMiddleware = session({
+  name: sessionCookieName,
   secret: env("SESSION_SECRET"),
   resave: false,
   saveUninitialized: false,

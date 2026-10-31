@@ -88,6 +88,9 @@ test("folder API validation and duplicate names return field errors", async () =
   });
 
   assert.equal(empty.status, 422);
+  assert.equal(empty.headers["cache-control"], "no-store");
+  assert.equal(empty.headers["x-content-type-options"], "nosniff");
+  assert.equal(empty.body.error.message, "Validation failed.");
   assert.match(empty.body.error.fields.name, /required/);
   assert.equal(long.status, 422);
   assert.match(long.body.error.fields.name, /100 characters/);

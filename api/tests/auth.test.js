@@ -36,7 +36,7 @@ test("protected API routes return JSON 401 responses", async () => {
     assert.equal(response.status, 401, path);
     assert.match(response.headers["content-type"], /application\/json/, path);
     assert.equal(response.body.error.code, "UNAUTHORIZED", path);
-    assert.equal(response.body.error.message, "Sign in to continue.", path);
+    assert.equal(response.body.error.message, "Authentication required.", path);
   }
 });
 
@@ -65,6 +65,7 @@ test("API logout clears the session and login starts a new one", async () => {
   const guest = await getApiSession(client);
 
   assert.equal(logout.status, 204);
+  assert.match(logout.headers["set-cookie"][0], /^connect\.sid=;/);
   assert.equal(guest.user, null);
   assert.equal(
     await prisma.session.count({ where: { data: { contains: user.id } } }),
@@ -91,7 +92,10 @@ test("API auth validation returns 422 field messages", async () => {
   });
 
   assert.equal(response.status, 422);
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
   assert.equal(response.body.error.code, "VALIDATION_ERROR");
+  assert.equal(response.body.error.message, "Validation failed.");
   assert.match(response.body.error.fields.email, /valid email/);
   assert.match(response.body.error.fields.password, /8 to 128/);
   assert.match(response.body.error.fields.confirmPassword, /do not match/);
@@ -108,6 +112,8 @@ test("API registration rejects duplicate emails with a field error", async () =>
   });
 
   assert.equal(response.status, 409);
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
   assert.equal(response.body.error.code, "CONFLICT");
   assert.match(response.body.error.fields.email, /already registered/);
   assert.equal(await prisma.user.count({ where: { email: user.email } }), 1);
@@ -123,8 +129,23 @@ test("API login rejects a wrong password", async () => {
   });
 
   assert.equal(response.status, 401);
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
   assert.equal(response.body.error.code, "UNAUTHORIZED");
   assert.match(response.body.error.message, /Invalid email or password/);
+});
+
+test("API login accepts a normalized email address", async () => {
+  const user = await registerApiUser(createAgent(), "api-login-normalize");
+  onTestFinished(() => cleanupUser(user));
+
+  const response = await sendApi(createAgent(), "post", "/api/auth/login", {
+    email: `  ${user.email.toUpperCase()}  `,
+    password: testPassword,
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.data.user.id, user.id);
 });
 
 test("unknown API routes and health checks return JSON", async () => {
