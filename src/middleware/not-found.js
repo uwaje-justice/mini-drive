@@ -1,5 +1,5 @@
 import NotFoundError from "../errors/not-found-error.js";
 
-const notFound = (req, res, next) => next(new NotFoundError("Page not found."));
+const notFound = (req, res, next) => next(new NotFoundError("Route not found."));
 
 export default notFound;

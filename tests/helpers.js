@@ -15,157 +15,6 @@ export const uniqueEmail = (label) =>
 
 export const createAgent = () => request.agent(app);
 
-export const getCsrfToken = async (client) => {
-  const response = await client.get("/");
-  const match = response.text.match(
-    /<meta name="csrf-token" content="([^"]+)">/,
-  );
-
-  if (!match) throw new Error("CSRF token was not rendered.");
-
-  return match[1];
-};
-
-export const postForm = async (client, path, fields = {}) => {
-  const token = fields._csrf ?? (await getCsrfToken(client));
-
-  return client
-    .post(path)
-    .type("form")
-    .send({ ...fields, _csrf: token });
-};
-
-export const registerUser = async (client, label = "user") => {
-  const email = uniqueEmail(label);
-  const response = await postForm(client, "/auth/register", {
-    email,
-    password: testPassword,
-    confirmPassword: testPassword,
-  });
-
-  if (response.status !== 302) {
-    throw new Error(`Registration failed with ${response.status}.`);
-  }
-
-  const user = await prisma.user.findUnique({ where: { email } });
-
-  if (!user) throw new Error("Registered user was not saved.");
-
-  return user;
-};
-
-export const loginUser = async (client, email, password = testPassword) => {
-  const response = await postForm(client, "/auth/login", { email, password });
-
-  if (response.status !== 302) {
-    throw new Error(`Login failed with ${response.status}.`);
-  }
-
-  return response;
-};
-
-export const createFolder = async (
-  client,
-  user,
-  name,
-  parentId = null,
-) => {
-  const response = await postForm(client, "/folders", {
-    name,
-    ...(parentId ? { parentId } : {}),
-  });
-
-  if (response.status !== 302) {
-    throw new Error(`Folder creation failed with ${response.status}.`);
-  }
-
-  const folder = await prisma.folder.findFirst({
-    where: {
-      ownerId: user.id,
-      parentId,
-      nameKey: name.trim().toLowerCase(),
-    },
-  });
-
-  if (!folder) throw new Error("Created folder was not saved.");
-
-  return folder;
-};
-
-export const uploadFiles = async (
-  client,
-  { folderId = null, files },
-) => {
-  const token = await getCsrfToken(client);
-  const agent = client.post("/files/upload").field("_csrf", token);
-
-  if (folderId) agent.field("folderId", folderId);
-
-  for (const file of files) {
-    agent.attach("files", file.buffer, {
-      filename: file.name,
-      contentType: file.contentType ?? "application/octet-stream",
-    });
-  }
-
-  return agent;
-};
-
-export const uploadFile = async (client, { folderId = null, ...file }) =>
-  uploadFiles(client, { folderId, files: [file] });
-
-export const findFile = (ownerId, name) =>
-  prisma.file.findFirst({
-    where: { ownerId, nameKey: name.trim().toLowerCase() },
-  });
-
-export const findFolder = (ownerId, name, parentId = null) =>
-  prisma.folder.findFirst({
-    where: {
-      ownerId,
-      parentId,
-      nameKey: name.trim().toLowerCase(),
-    },
-  });
-
-export const createShareLink = async (client, folder, days = 7) => {
-  const response = await postForm(client, `/folders/${folder.id}/share`, {
-    days,
-  });
-
-  if (response.status !== 302) {
-    throw new Error(`Share creation failed with ${response.status}.`);
-  }
-
-  const link = await prisma.shareLink.findFirst({
-    where: { folderId: folder.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  if (!link) throw new Error("Created share link was not saved.");
-
-  return link;
-};
-
-const parseBinary = (response, callback) => {
-  const chunks = [];
-
-  response.on("data", (chunk) => chunks.push(chunk));
-  response.on("end", () => callback(null, Buffer.concat(chunks)));
-};
-
-export const downloadFile = (client, fileId) =>
-  client
-    .get(`/files/${fileId}/download`)
-    .buffer(true)
-    .parse(parseBinary);
-
-export const downloadSharedFile = (client, token, fileId) =>
-  client
-    .get(`/share/${token}/files/${fileId}/download`)
-    .buffer(true)
-    .parse(parseBinary);
-
 export const getApiSession = async (client) => {
   const response = await client.get("/api/auth/session");
 
@@ -204,11 +53,7 @@ export const registerApiUser = async (client, label = "api-user") => {
   return user;
 };
 
-export const createApiFolder = async (
-  client,
-  name,
-  parentId = null,
-) => {
+export const createApiFolder = async (client, name, parentId = null) => {
   const response = await sendApi(client, "post", "/api/folders", {
     name,
     ...(parentId ? { parentId } : {}),
@@ -221,14 +66,14 @@ export const createApiFolder = async (
   return response.body.data.folder;
 };
 
-export const uploadApiFiles = async (
-  client,
-  { folderId = null, files },
-) => {
+export const findFile = (ownerId, name) =>
+  prisma.file.findFirst({
+    where: { ownerId, nameKey: name.trim().toLowerCase() },
+  });
+
+export const uploadApiFiles = async (client, { folderId = null, files }) => {
   const token = await getApiCsrfToken(client);
-  const agent = client
-    .post("/api/files")
-    .set("x-csrf-token", token);
+  const agent = client.post("/api/files").set("x-csrf-token", token);
 
   if (folderId) agent.field("folderId", folderId);
 
@@ -258,6 +103,13 @@ export const createApiShareLink = async (client, folder, days = 7) => {
   }
 
   return response.body.data.link;
+};
+
+const parseBinary = (response, callback) => {
+  const chunks = [];
+
+  response.on("data", (chunk) => chunks.push(chunk));
+  response.on("end", () => callback(null, Buffer.concat(chunks)));
 };
 
 export const downloadApiFile = (client, fileId) =>
@@ -291,12 +143,6 @@ export const cleanupUser = async (user) => {
   await prisma.session
     .deleteMany({ where: { data: { contains: user.id } } })
     .catch(() => {});
-};
-
-export const cleanupUsers = async (users) => {
-  for (const user of users) {
-    await cleanupUser(user);
-  }
 };
 
 export const bytes = {

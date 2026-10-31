@@ -59,11 +59,11 @@ test("server.js starts the HTTP server", async () => {
 
   await waitForServer(child);
 
-  const response = await fetch(`http://127.0.0.1:${port}/`);
-  const body = await response.text();
+  const response = await fetch(`http://127.0.0.1:${port}/api/health`);
+  const body = await response.json();
 
   assert.equal(response.status, 200);
-  assert.match(body, /Your files, in one calm place/i);
+  assert.deepEqual(body, { data: { status: "ok" } });
 
   child.kill();
   await once(child, "exit");

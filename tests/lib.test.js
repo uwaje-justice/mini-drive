@@ -2,7 +2,6 @@ import { test } from "vitest";
 import assert from "node:assert/strict";
 import detectMimeType from "../src/lib/file-signature.js";
 import contentDisposition from "../src/lib/content-disposition.js";
-import formatBytes from "../src/lib/format-bytes.js";
 import env from "../src/lib/env.js";
 import { buildPagination, parsePage } from "../src/lib/pagination.js";
 import { bytes } from "./helpers.js";
@@ -45,16 +44,6 @@ test("content disposition encodes Unicode and unsafe fallback characters", () =>
     contentDisposition("back\\slash.txt"),
     `attachment; filename="back_slash.txt"; filename*=UTF-8''back%5Cslash.txt`,
   );
-});
-
-test("format bytes changes units at the right thresholds", () => {
-  assert.equal(formatBytes(0), "0 B");
-  assert.equal(formatBytes(1023), "1023 B");
-  assert.equal(formatBytes(1024), "1.0 KB");
-  assert.equal(formatBytes(1536), "1.5 KB");
-  assert.equal(formatBytes(1024 * 1024 - 1), "1024.0 KB");
-  assert.equal(formatBytes(1024 * 1024), "1.0 MB");
-  assert.equal(formatBytes(5 * 1024 * 1024), "5.0 MB");
 });
 
 test("pagination parses pages and clamps to the available range", () => {

@@ -10,6 +10,17 @@ import {
   sendApi,
 } from "./helpers.js";
 
+test("non-API routes return JSON 404 responses", async () => {
+  const response = await createAgent().get("/");
+
+  assert.equal(response.status, 404);
+  assert.match(response.headers["content-type"], /application\/json/);
+  assert.equal(response.headers["cache-control"], "no-store");
+  assert.equal(response.headers["x-content-type-options"], "nosniff");
+  assert.equal(response.body.error.code, "NOT_FOUND");
+  assert.equal(response.body.error.message, "Route not found.");
+});
+
 test("API mutations reject missing and invalid CSRF tokens", async () => {
   const client = createAgent();
   const user = await registerApiUser(client, "api-csrf");

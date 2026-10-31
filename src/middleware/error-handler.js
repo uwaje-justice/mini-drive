@@ -1,9 +1,6 @@
 import AppError from "../errors/app-error.js";
 
-const isApiRequest = (req) =>
-  req.originalUrl === "/api" || req.originalUrl.startsWith("/api/");
-
-const apiErrorCode = (error, statusCode) => {
+const errorCode = (error, statusCode) => {
   if (error.code === "EBADCSRFTOKEN") return "CSRF_INVALID";
   if (error instanceof AppError) return error.code;
 
@@ -19,26 +16,19 @@ const errorHandler = (err, req, res, next) => {
   if (statusCode >= 500) console.error(err);
   if (res.headersSent) return next(err);
 
-  if (isApiRequest(req)) {
-    res.set({
+  return res
+    .status(statusCode)
+    .set({
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
-    });
-
-    return res.status(statusCode).json({
+    })
+    .json({
       error: {
-        code: apiErrorCode(err, statusCode),
+        code: errorCode(err, statusCode),
         message,
         ...(err.fields ? { fields: err.fields } : {}),
       },
     });
-  }
-
-  return res.status(statusCode).render("error", {
-    statusCode,
-    message,
-    csrfToken: req.csrfToken?.() ?? "",
-  });
 };
 
 export default errorHandler;

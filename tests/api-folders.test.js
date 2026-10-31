@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { test, onTestFinished } from "vitest";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -242,3 +243,47 @@ test("share links can be created, listed, and revoked through the API", async ()
   assert.equal(revoke.status, 204);
   assert.equal(await prisma.shareLink.count({ where: { id: link.id } }), 0);
 });
+
+test("the drive API paginates folders and files and clamps page numbers", async () => {
+  const client = createAgent();
+  const user = await registerApiUser(client, "api-folder-pages");
+  onTestFinished(() => cleanupUser(user));
+
+  await prisma.folder.createMany({
+    data: Array.from({ length: 25 }, (_, index) => ({
+      name: `Folder ${String(index + 1).padStart(2, "0")}`,
+      nameKey: `folder ${String(index + 1).padStart(2, "0")}`,
+      ownerId: user.id,
+      parentKey: "root",
+    })),
+  });
+  await prisma.file.createMany({
+    data: Array.from({ length: 25 }, (_, index) => ({
+      name: `File ${String(index + 1).padStart(2, "0")}.txt`,
+      nameKey: `file ${String(index + 1).padStart(2, "0")}.txt`,
+      storageProvider: "local",
+      storageKey: randomUUID(),
+      mimeType: "text/plain",
+      size: 10,
+      ownerId: user.id,
+      folderKey: "root",
+    })),
+  });
+
+  const second = await client.get("/api/drive?page=2&folderPage=2");
+  const high = await client.get("/api/drive?page=99&folderPage=99");
+  const invalid = await client.get("/api/drive?page=nope&folderPage=-2");
+
+  assert.equal(second.status, 200);
+  assert.equal(second.body.data.folders.length, 5);
+  assert.equal(second.body.data.files.length, 5);
+  assert.equal(second.body.data.folderPagination.page, 2);
+  assert.equal(second.body.data.filePagination.page, 2);
+  assert.equal(second.body.data.folderPagination.totalPages, 2);
+  assert.equal(second.body.data.filePagination.hasPrevious, true);
+  assert.equal(second.body.data.filePagination.hasNext, false);
+  assert.equal(high.body.data.folderPagination.page, 2);
+  assert.equal(high.body.data.filePagination.page, 2);
+  assert.equal(invalid.body.data.folderPagination.page, 1);
+  assert.equal(invalid.body.data.filePagination.page, 1);
+}, 30000);
