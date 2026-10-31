@@ -1,9 +1,9 @@
-import passport from "../../config/passport.js";
-import ConflictError from "../../errors/conflict-error.js";
-import { generateCsrfToken } from "../../middleware/csrf.js";
-import authService from "../../services/auth-service.js";
+import passport from "../config/passport.js";
+import ConflictError from "../errors/conflict-error.js";
+import { generateCsrfToken } from "../middleware/csrf.js";
 import { sendData, sendError } from "../responses.js";
 import { serializeUser } from "../serializers.js";
+import authService from "../services/auth-service.js";
 
 const sessionData = (req, user) => ({
   user: user ? serializeUser(user) : null,

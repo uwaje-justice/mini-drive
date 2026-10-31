@@ -1,6 +1,6 @@
-import searchService from "../../services/search-service.js";
 import { sendData } from "../responses.js";
 import { serializePagination, serializeSearchResult } from "../serializers.js";
+import searchService from "../services/search-service.js";
 
 const maxQueryLength = 100;
 

@@ -1,10 +1,10 @@
-import folderService from "../../services/folder-service.js";
 import { sendData } from "../responses.js";
 import {
   serializeDrive,
   serializeFolder,
   serializeMoveTarget,
 } from "../serializers.js";
+import folderService from "../services/folder-service.js";
 
 const pageQuery = (req) => ({
   page: req.query.page,

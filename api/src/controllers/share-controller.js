@@ -1,7 +1,6 @@
-import BadRequestError from "../../errors/bad-request-error.js";
-import isPreviewable from "../../lib/preview.js";
-import sendFile from "../../lib/send-file.js";
-import shareService from "../../services/share-service.js";
+import BadRequestError from "../errors/bad-request-error.js";
+import isPreviewable from "../lib/preview.js";
+import sendFile from "../lib/send-file.js";
 import { sendData } from "../responses.js";
 import {
   serializeDrive,
@@ -9,6 +8,7 @@ import {
   serializeShare,
   serializeShareLink,
 } from "../serializers.js";
+import shareService from "../services/share-service.js";
 
 const index = async (req, res) => {
   const { folder, links } = await shareService.getSharePage(

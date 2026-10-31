@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import folderValidator from "../../validators/folder-validator.js";
-import shareValidator from "../../validators/share-validator.js";
 import folderController from "../controllers/folder-controller.js";
 import shareController from "../controllers/share-controller.js";
 import requireAuth from "../middleware/require-auth.js";
 import validate from "../middleware/validate.js";
+import folderValidator from "../validators/folder-validator.js";
+import shareValidator from "../validators/share-validator.js";
 
 const { folderRules, moveRules } = folderValidator;
 const { shareRules } = shareValidator;

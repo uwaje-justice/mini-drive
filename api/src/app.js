@@ -1,11 +1,11 @@
 import express from "express";
 
-import apiRouter from "./api/routes/index.js";
 import passport from "./config/passport.js";
 import sessionMiddleware from "./config/session.js";
 import { csrfProtection } from "./middleware/csrf.js";
 import errorHandler from "./middleware/error-handler.js";
 import notFound from "./middleware/not-found.js";
+import apiRouter from "./routes/index.js";
 
 const app = express();
 

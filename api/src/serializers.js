@@ -1,4 +1,4 @@
-import { getPreviewKind } from "../lib/preview.js";
+import { getPreviewKind } from "./lib/preview.js";
 
 const serializeDate = (value) => (value ? value.toISOString() : null);
 

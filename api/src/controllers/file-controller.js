@@ -1,12 +1,12 @@
-import BadRequestError from "../../errors/bad-request-error.js";
-import PayloadTooLargeError from "../../errors/payload-too-large-error.js";
-import UnsupportedMediaTypeError from "../../errors/unsupported-media-type-error.js";
-import isPreviewable from "../../lib/preview.js";
-import sendFile from "../../lib/send-file.js";
-import fileService from "../../services/file-service.js";
-import folderService from "../../services/folder-service.js";
+import BadRequestError from "../errors/bad-request-error.js";
+import PayloadTooLargeError from "../errors/payload-too-large-error.js";
+import UnsupportedMediaTypeError from "../errors/unsupported-media-type-error.js";
+import isPreviewable from "../lib/preview.js";
+import sendFile from "../lib/send-file.js";
 import { sendData } from "../responses.js";
 import { serializeFile, serializeMoveTarget } from "../serializers.js";
+import fileService from "../services/file-service.js";
+import folderService from "../services/folder-service.js";
 
 const uploadFailure = (error) => {
   if (error.statusCode === 413) return new PayloadTooLargeError(error.message);
