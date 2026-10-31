@@ -2,6 +2,14 @@ import js from "@eslint/js";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
 
+const unusedVarsRule = [
+  "error",
+  {
+    argsIgnorePattern: "^_",
+    varsIgnorePattern: "^_",
+  },
+];
+
 export default [
   {
     ignores: [
@@ -26,15 +34,40 @@ export default [
       "simple-import-sort": simpleImportSort,
     },
     rules: {
-      "no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-        },
-      ],
+      "no-unused-vars": unusedVarsRule,
       "simple-import-sort/exports": "error",
       "simple-import-sort/imports": "error",
+    },
+  },
+  {
+    files: ["client/**/*.{js,jsx}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...globals.browser,
+      },
+    },
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "no-unused-vars": unusedVarsRule,
+      "simple-import-sort/exports": "error",
+      "simple-import-sort/imports": "error",
+    },
+  },
+  {
+    files: ["client/vite.config.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
 ];

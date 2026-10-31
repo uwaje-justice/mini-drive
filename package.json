@@ -4,11 +4,14 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "api"
+    "api",
+    "client"
   ],
   "scripts": {
-    "dev": "npm run dev -w @file-uploader/api",
+    "dev": "concurrently --kill-others --names api,client --prefix-colors blue,magenta \"npm run dev -w @file-uploader/api\" \"npm run dev -w @file-uploader/client\"",
     "dev:api": "npm run dev -w @file-uploader/api",
+    "dev:client": "npm run dev -w @file-uploader/client",
+    "build": "npm run build -w @file-uploader/client",
     "start": "npm run start -w @file-uploader/api",
     "test": "npm run test -w @file-uploader/api",
     "test:watch": "npm run test:watch -w @file-uploader/api",
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "concurrently": "^10.0.6",
     "eslint": "^10.14.0",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.13.0"
