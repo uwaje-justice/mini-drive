@@ -35,4 +35,36 @@ const loginRules = [
     .bail(),
 ];
 
-export default { registerRules, loginRules };
+const currentPasswordRule = body("currentPassword")
+  .notEmpty()
+  .withMessage("Enter your current password.");
+
+const emailChangeRules = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required.")
+    .bail()
+    .isEmail()
+    .withMessage("Enter a valid email.")
+    .bail()
+    .normalizeEmail(),
+  currentPasswordRule,
+];
+
+const passwordChangeRules = [
+  currentPasswordRule,
+  body("newPassword")
+    .isLength({ min: 8, max: 128 })
+    .withMessage("Password must be 8 to 128 characters."),
+  body("confirmPassword")
+    .custom((value, { req }) => value === req.body.newPassword)
+    .withMessage("Passwords do not match."),
+];
+
+export default {
+  registerRules,
+  loginRules,
+  emailChangeRules,
+  passwordChangeRules,
+};

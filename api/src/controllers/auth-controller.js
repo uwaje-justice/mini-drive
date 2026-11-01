@@ -55,6 +55,33 @@ const login = (req, res, next) => {
   })(req, res, next);
 };
 
+const email = async (req, res, next) => {
+  try {
+    const user = await authService.updateEmail(req.user.id, req.validated);
+
+    return sendData(res, sessionData(req, user));
+  } catch (error) {
+    if (error instanceof ConflictError) {
+      return next(new ConflictError(error.message, { email: error.message }));
+    }
+
+    return next(error);
+  }
+};
+
+const password = async (req, res, next) => {
+  try {
+    const user = await authService.updatePassword(req.user.id, {
+      ...req.validated,
+      currentSessionId: req.sessionID,
+    });
+
+    return sendData(res, sessionData(req, user));
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const logout = (req, res, next) => {
   req.logout((error) => {
     if (error) return next(error);
@@ -68,4 +95,4 @@ const logout = (req, res, next) => {
   });
 };
 
-export default { session, register, login, logout };
+export default { session, register, login, logout, email, password };

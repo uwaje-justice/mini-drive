@@ -174,3 +174,99 @@ test("API registration normalizes email addresses", async () => {
   assert.equal(response.status, 201);
   assert.equal(response.body.data.user.email, email);
 });
+
+test("API email changes require the current password and a unique email", async () => {
+  const client = createAgent();
+  const user = await registerApiUser(client, "api-email-change");
+  const other = await registerApiUser(createAgent(), "api-email-taken");
+  onTestFinished(() => cleanupUser(other));
+  onTestFinished(() => cleanupUser(user));
+
+  const nextEmail = uniqueEmail("api-email-new");
+  const wrongPassword = await sendApi(client, "patch", "/api/auth/email", {
+    email: nextEmail,
+    currentPassword: "wrong-password",
+  });
+  const duplicate = await sendApi(client, "patch", "/api/auth/email", {
+    email: other.email,
+    currentPassword: testPassword,
+  });
+  const success = await sendApi(client, "patch", "/api/auth/email", {
+    email: `  ${nextEmail.toUpperCase()}  `,
+    currentPassword: testPassword,
+  });
+  const session = await getApiSession(client);
+
+  assert.equal(wrongPassword.status, 401);
+  assert.equal(wrongPassword.body.error.code, "UNAUTHORIZED");
+  assert.match(wrongPassword.body.error.fields.currentPassword, /incorrect/);
+  assert.equal(duplicate.status, 409);
+  assert.equal(duplicate.body.error.code, "CONFLICT");
+  assert.match(duplicate.body.error.fields.email, /already registered/);
+  assert.equal(success.status, 200);
+  assert.equal(success.body.data.user.email, nextEmail);
+  assert.equal(session.user.email, nextEmail);
+  assert.equal(
+    (await prisma.user.findUnique({ where: { id: user.id } })).email,
+    nextEmail,
+  );
+});
+
+test("API password changes update the hash and end other sessions", async () => {
+  const client = createAgent();
+  const otherClient = createAgent();
+  const user = await registerApiUser(client, "api-password-change");
+  onTestFinished(() => cleanupUser(user));
+
+  await sendApi(otherClient, "post", "/api/auth/login", {
+    email: user.email,
+    password: testPassword,
+  });
+
+  const before = await prisma.session.count({
+    where: { data: { contains: user.id } },
+  });
+  const wrongPassword = await sendApi(client, "patch", "/api/auth/password", {
+    currentPassword: "wrong-password",
+    newPassword: "new-password-123",
+    confirmPassword: "new-password-123",
+  });
+  const invalid = await sendApi(client, "patch", "/api/auth/password", {
+    currentPassword: testPassword,
+    newPassword: "short",
+    confirmPassword: "different",
+  });
+  const success = await sendApi(client, "patch", "/api/auth/password", {
+    currentPassword: testPassword,
+    newPassword: "new-password-123",
+    confirmPassword: "new-password-123",
+  });
+  const after = await prisma.session.count({
+    where: { data: { contains: user.id } },
+  });
+  const session = await getApiSession(client);
+  const oldLogin = await sendApi(createAgent(), "post", "/api/auth/login", {
+    email: user.email,
+    password: testPassword,
+  });
+  const newLogin = await sendApi(createAgent(), "post", "/api/auth/login", {
+    email: user.email,
+    password: "new-password-123",
+  });
+  const updated = await prisma.user.findUnique({ where: { id: user.id } });
+
+  assert.equal(before, 2);
+  assert.equal(wrongPassword.status, 401);
+  assert.match(wrongPassword.body.error.fields.currentPassword, /incorrect/);
+  assert.equal(invalid.status, 422);
+  assert.match(invalid.body.error.fields.newPassword, /8 to 128/);
+  assert.match(invalid.body.error.fields.confirmPassword, /do not match/);
+  assert.equal(success.status, 200);
+  assert.equal(success.body.data.user.id, user.id);
+  assert.equal(after, 1);
+  assert.equal(session.user.id, user.id);
+  assert.notEqual(updated.passwordHash, user.passwordHash);
+  assert.match(updated.passwordHash, /^\$argon2/);
+  assert.equal(oldLogin.status, 401);
+  assert.equal(newLogin.status, 200);
+});
