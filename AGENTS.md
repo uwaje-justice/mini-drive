@@ -76,6 +76,7 @@ file-uploader/
 │       │   ├── query-client.js
 │       │   └── query-keys.js
 │       ├── pages/
+│       │   ├── about-page.jsx
 │       │   ├── drive-page.jsx
 │       │   ├── landing-page.jsx
 │       │   ├── login-page.jsx
@@ -117,7 +118,7 @@ Client:
 - `client/src/app/router.jsx` owns the object route table and lazy page imports. `providers.jsx` wraps TanStack Query and Motion.
 - `client/src/pages/` holds one thin component per screen. Pages compose feature components; they do not call `fetch`.
 - `client/src/features/` holds domain components and hooks. Add `drive`, `files`, `folders`, `search`, and `shares` as each feature is built.
-- `client/src/components/` holds shared layout, routing guards, and UI primitives.
+- `client/src/components/` holds shared layout, routing guards, and UI primitives. The landing and About pages share `layout/landing-header.jsx` and `layout/landing-footer.jsx`.
 - `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js` wrap it.
 - `client/src/lib/query-keys.js` owns every TanStack Query key. `query-client.js` configures the client.
 - `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind, defines MD3 tokens in `@theme static`, and holds the base and landing styles.

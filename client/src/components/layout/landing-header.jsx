@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 import BrandMark from "@/components/brand-mark.jsx";
 import LogoutButton from "@/features/auth/components/logout-button.jsx";
@@ -17,9 +17,15 @@ const LandingHeader = () => {
         </Link>
 
         <nav className="site-nav site-nav--landing" aria-label="Landing page">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#privacy">Privacy</a>
+          <Link to="/#features">Features</Link>
+          <Link to="/#how-it-works">How it works</Link>
+          <Link to="/#privacy">Privacy</Link>
+          <NavLink
+            className={({ isActive }) => (isActive ? "text-primary" : undefined)}
+            to="/about"
+          >
+            About
+          </NavLink>
         </nav>
 
         <div className="site-actions">

@@ -21,9 +21,10 @@ const LandingFooter = () => {
           </p>
         </div>
         <nav className="site-footer__nav" aria-label="Footer">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#privacy">Privacy</a>
+          <Link to="/#features">Features</Link>
+          <Link to="/#how-it-works">How it works</Link>
+          <Link to="/#privacy">Privacy</Link>
+          <Link to="/about">About</Link>
           {user ? (
             <Link to="/drive">My drive</Link>
           ) : (

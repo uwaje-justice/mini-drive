@@ -4,6 +4,7 @@ import AppShell from "@/components/layout/app-shell.jsx";
 import RootLayout from "@/components/layout/root-layout.jsx";
 import GuestRoute from "@/components/routing/guest-route.jsx";
 import ProtectedRoute from "@/components/routing/protected-route.jsx";
+import AboutPage from "@/pages/about-page.jsx";
 import LandingPage from "@/pages/landing-page.jsx";
 import NotFoundPage from "@/pages/not-found-page.jsx";
 import RouteErrorPage from "@/pages/route-error-page.jsx";
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <LandingPage /> },
+      { path: "about", element: <AboutPage /> },
       {
         path: "login",
         element: <GuestRoute />,
