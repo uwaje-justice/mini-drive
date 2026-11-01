@@ -1,6 +1,6 @@
-# File Uploader
+# Mini Drive
 
-A personal storage app (mini Google Drive). The Express API handles
+Mini Drive is a personal storage app. The Express API handles
 registration, login, folders, uploads, previews, downloads, search, and
 expiring share links. The React client is the only browser UI.
 
@@ -12,7 +12,8 @@ expiring share links. The React client is the only browser UI.
 - Multer for uploads
 - express-validator for input validation
 - Local filesystem for development and Cloudinary for remote storage
-- React 19, React Router, TanStack Query, React Hook Form, and Vite
+- React 19, React Router 7 object routes, TanStack Query, React Hook Form,
+  Tailwind CSS 4, Motion, React Icons, and Vite 8
 - Vitest with Supertest for API tests
 - ESLint 10 with `eslint-plugin-simple-import-sort`
 
@@ -49,25 +50,40 @@ file-uploader/
 │   └── vitest.config.js
 ├── client/
 │   ├── index.html
+│   ├── jsconfig.json
 │   ├── package.json
 │   ├── vite.config.js
 │   └── src/
-│       ├── app.jsx
+│       ├── app/
+│       │   ├── providers.jsx
+│       │   └── router.jsx
 │       ├── main.jsx
 │       ├── api/
-│       │   └── api-client.js
+│       │   ├── api-client.js
+│       │   └── auth.js
+│       ├── components/
+│       │   ├── brand-mark.jsx
+│       │   ├── layout/
+│       │   ├── routing/
+│       │   └── ui/
+│       ├── features/
+│       │   └── auth/
+│       │       ├── components/
+│       │       ├── hooks/
+│       │       ├── apply-api-error.js
+│       │       └── session-cache.js
 │       ├── lib/
-│       │   └── query-client.js
+│       │   ├── query-client.js
+│       │   └── query-keys.js
 │       ├── pages/
+│       │   ├── drive-page.jsx
 │       │   ├── landing-page.jsx
-│       │   └── not-found-page.jsx
+│       │   ├── login-page.jsx
+│       │   ├── not-found-page.jsx
+│       │   ├── register-page.jsx
+│       │   └── route-error-page.jsx
 │       └── styles/
-│           ├── app.css
-│           ├── auth.css
-│           ├── base.css
-│           ├── drive.css
-│           ├── landing.css
-│           └── tokens.css
+│           └── globals.css
 ├── eslint.config.js
 ├── package.json
 ├── package-lock.json
@@ -97,13 +113,19 @@ API:
 
 Client:
 
-- `client/src/main.jsx` mounts React, fonts, global CSS, the query client, and the router.
-- `client/src/app.jsx` owns the route table.
-- `client/src/pages/` holds one component per screen.
-- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries.
-- `client/src/lib/query-client.js` configures TanStack Query.
-- `client/src/styles/` holds the restored design tokens and page styles.
-- Add `components/`, `hooks/`, and `features/` only when a real feature needs them.
+- `client/src/main.jsx` mounts React, fonts, global CSS, providers, and the router.
+- `client/src/app/router.jsx` owns the object route table and lazy page imports. `providers.jsx` wraps TanStack Query and Motion.
+- `client/src/pages/` holds one thin component per screen. Pages compose feature components; they do not call `fetch`.
+- `client/src/features/` holds domain components and hooks. Add `drive`, `files`, `folders`, `search`, and `shares` as each feature is built.
+- `client/src/components/` holds shared layout, routing guards, and UI primitives.
+- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js` wrap it.
+- `client/src/lib/query-keys.js` owns every TanStack Query key. `query-client.js` configures the client.
+- `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind, defines MD3 tokens in `@theme static`, and holds the base and landing styles.
+- Use MD3 token names directly: `primary`, `on-primary`, `primary-container`, `surface`, `on-surface`, `on-surface-variant`, `outline-variant`, `error`, `success`, and `warning`. Do not add alias token names.
+- Use the `@/` alias for `client/src` instead of deep relative paths.
+- New screens use Tailwind utilities and shared UI components. Do not add page-level CSS files.
+- Import Motion from `motion/react`, respect reduced motion, and use it only for meaningful transitions.
+- Import React Icons directly from a pack such as `react-icons/fi`; do not create icon barrel files.
 
 ### Rules for this structure
 
@@ -114,6 +136,8 @@ Client:
 - Switch storage with `STORAGE_DRIVER`. Register new providers in `api/src/lib/storage.js`; controllers stay unchanged.
 - Do not add a second HTTP layer. The client uses this API.
 - Never expose storage keys, storage URLs, name keys, password hashes, or owner IDs.
+- Client data comes from TanStack Query hooks, never page-level `fetch`.
+- Auth state comes from the session query and cookie. Never store it in `localStorage`.
 - Run all npm commands from the repository root. Use `-w` for one workspace.
 
 ## API contract
