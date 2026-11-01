@@ -53,6 +53,26 @@ const router = createBrowserRouter([
                 index: true,
                 lazy: lazyPage(() => import("@/pages/drive-page.jsx")),
               },
+              {
+                path: "files",
+                lazy: lazyPage(() => import("@/pages/files-page.jsx")),
+              },
+              {
+                path: "files/:fileId",
+                lazy: lazyPage(() => import("@/pages/file-page.jsx")),
+              },
+              {
+                path: "folders",
+                lazy: lazyPage(() => import("@/pages/folders-page.jsx")),
+              },
+              {
+                path: "folders/:folderId",
+                lazy: lazyPage(() => import("@/pages/folder-page.jsx")),
+              },
+              {
+                path: "categories/:categoryId",
+                lazy: lazyPage(() => import("@/pages/category-page.jsx")),
+              },
             ],
           },
         ],
