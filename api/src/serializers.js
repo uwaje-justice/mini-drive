@@ -74,6 +74,42 @@ export const serializeDrive = ({
   breadcrumbs: breadcrumbs.map(serializeBreadcrumb),
 });
 
+export const serializeDriveCategory = (category) => ({
+  id: category.id,
+  name: category.name,
+  count: category.count,
+});
+
+export const serializeActivity = (activity) => ({
+  type: activity.type,
+  action: activity.action,
+  id: activity.id,
+  name: activity.name,
+  folder: activity.folder
+    ? { id: activity.folder.id, name: activity.folder.name }
+    : null,
+  parent: activity.parent
+    ? { id: activity.parent.id, name: activity.parent.name }
+    : null,
+  createdAt: serializeDate(activity.createdAt),
+});
+
+export const serializeDriveOverview = ({ summary, categories, activity }) => ({
+  summary,
+  categories: categories.map(serializeDriveCategory),
+  activity: activity.map(serializeActivity),
+});
+
+export const serializeCategoryListing = ({
+  category,
+  files,
+  pagination,
+}) => ({
+  category: serializeDriveCategory(category),
+  files: files.map(serializeFile),
+  pagination: serializePagination(pagination),
+});
+
 export const serializeSearchResult = (result) => ({
   type: result.type,
   id: result.id,
