@@ -1,195 +1,468 @@
-const assurances = ["Private by default", "Up to 10 files at once", "5 MB per file"];
+import {
+  FiCheck,
+  FiDownload,
+  FiEye,
+  FiFile,
+  FiFileText,
+  FiFolder,
+  FiImage,
+  FiLink,
+  FiSearch,
+  FiShield,
+  FiUploadCloud,
+  FiX,
+} from "react-icons/fi";
+import { Link } from "react-router-dom";
 
-const files = [
-  { name: "Projects", meta: "4 items", tone: "yellow" },
-  { name: "Receipts", meta: "12 items", tone: "blue" },
-  { name: "Notes.txt", meta: "2.4 KB", tone: "red" },
-  { name: "Team photo.jpg", meta: "1.8 MB", tone: "green" },
+import BrandMark from "@/components/brand-mark.jsx";
+import LogoutButton from "@/features/auth/components/logout-button.jsx";
+import useSession from "@/features/auth/hooks/use-session.js";
+
+const assurances = [
+  { icon: FiUploadCloud, label: "10 files per upload" },
+  { icon: FiFile, label: "5 MB per file" },
+  { icon: FiLink, label: "Links last 1 to 365 days" },
 ];
 
-const BrandMark = () => (
-  <svg className="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-    <rect width="32" height="32" rx="9" fill="#1558d6" />
-    <path
-      d="M8 23V11.5L16 19l8-7.5V23"
-      fill="none"
-      stroke="#ffffff"
-      strokeWidth="2.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <circle cx="24.5" cy="7.5" r="2" fill="#fbbc04" />
-  </svg>
-);
+const driveItems = [
+  { name: "Projects", meta: "4 items", tone: "yellow", icon: FiFolder },
+  { name: "Receipts", meta: "12 items", tone: "blue", icon: FiFolder },
+  { name: "Notes.txt", meta: "2.4 KB", tone: "red", icon: FiFileText },
+  { name: "Team photo.jpg", meta: "1.8 MB", tone: "green", icon: FiImage },
+];
 
-const CheckIcon = () => (
-  <svg
-    className="icon"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="9" />
-    <path d="m8.5 12 2.3 2.3 4.7-5" />
-  </svg>
-);
+const benefits = [
+  {
+    icon: FiUploadCloud,
+    tone: "blue",
+    title: "Batch uploads",
+    text: "Send 10 files at once and get a clear message for each skipped file.",
+  },
+  {
+    icon: FiEye,
+    tone: "green",
+    title: "Preview first",
+    text: "Open images, PDFs, and text before downloading.",
+  },
+  {
+    icon: FiLink,
+    tone: "yellow",
+    title: "Expiring links",
+    text: "Share a folder for 1 to 365 days, then close the link.",
+  },
+];
 
-const DocumentIcon = () => (
-  <svg
-    className="icon"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
-    <path d="M14 3v5h5" />
-    <path d="M9 13h6M9 17h4" />
-  </svg>
-);
+const features = [
+  {
+    icon: FiFolder,
+    tone: "blue",
+    title: "Nested folders",
+    text: "Create folders inside folders, so a project can keep its own files together.",
+  },
+  {
+    icon: FiUploadCloud,
+    tone: "yellow",
+    title: "Batch upload",
+    text: "Select up to 10 files at once. Skipped files get a clear message.",
+  },
+  {
+    icon: FiSearch,
+    tone: "green",
+    title: "Search by name",
+    text: "Search folders and files across your drive. Results only include your files.",
+  },
+  {
+    icon: FiEye,
+    tone: "blue",
+    title: "Inline previews",
+    text: "Open images, PDFs, and plain text without downloading them.",
+  },
+  {
+    icon: FiX,
+    tone: "red",
+    title: "Read-only links",
+    text: "Share a folder for 1 to 365 days. The link can be revoked.",
+  },
+  {
+    icon: FiDownload,
+    tone: "green",
+    title: "Original downloads",
+    text: "Download the original file whenever you need it.",
+  },
+];
 
-const FileCard = ({ file }) => (
-  <div className="drive-card">
-    <span className={`drive-card__icon drive-card__icon--${file.tone}`}>
-      <DocumentIcon />
-    </span>
-    <span>
-      <span className="drive-card__name">{file.name}</span>
-      <span className="drive-card__meta">{file.meta}</span>
-    </span>
-  </div>
-);
+const steps = [
+  {
+    number: "01",
+    title: "Create an account",
+    text: "Sign up with an email and password. Your drive starts empty.",
+  },
+  {
+    number: "02",
+    title: "Add folders and files",
+    text: "Create a folder, then upload up to 10 files at a time.",
+  },
+  {
+    number: "03",
+    title: "Find or share",
+    text: "Search by name, preview a file, or create a folder link that expires.",
+  },
+];
 
-const LandingPage = () => (
-  <>
-    <header className="site-header">
-      <div className="site-header__inner">
-        <a className="brand" href="/">
-          <BrandMark />
-          File Uploader
-        </a>
-        <div className="site-actions">
-          <a className="button button--secondary button--small" href="/api/health">
-            API health
-          </a>
+const privacyPoints = [
+  "Only you can open your drive.",
+  "A link exposes only the folder you choose.",
+  "Expired and revoked links stop working.",
+];
+
+const DriveItem = ({ item }) => {
+  const Icon = item.icon;
+
+  return (
+    <div className="drive-card">
+      <span className={`drive-card__icon drive-card__icon--${item.tone}`}>
+        <Icon className="icon" aria-hidden="true" />
+      </span>
+      <span>
+        <span className="drive-card__name">{item.name}</span>
+        <span className="drive-card__meta">{item.meta}</span>
+      </span>
+    </div>
+  );
+};
+
+const LandingPage = () => {
+  const session = useSession();
+  const user = session.data?.user;
+  const year = new Date().getFullYear();
+
+  return (
+    <>
+      <header className="site-header">
+        <div className="site-header__inner">
+          <Link className="brand" to="/">
+            <BrandMark className="brand__mark" />
+            Mini Drive
+          </Link>
+
+          <nav className="site-nav site-nav--landing" aria-label="Landing page">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#privacy">Privacy</a>
+          </nav>
+
+          <div className="site-actions">
+            {user ? (
+              <>
+                <Link
+                  className="button button--primary button--small"
+                  to="/drive"
+                >
+                  Open my drive
+                </Link>
+                <div className="site-user">
+                  <span className="site-user__email">{user.email}</span>
+                  <LogoutButton />
+                </div>
+              </>
+            ) : (
+              <>
+                <Link className="site-link" to="/login">
+                  Sign in
+                </Link>
+                <Link
+                  className="button button--primary button--small"
+                  to="/register"
+                >
+                  Create account
+                </Link>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main className="landing-page">
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="container hero__grid">
-          <div className="hero__copy">
-            <p className="eyebrow">
-              <span className="eyebrow__dot" aria-hidden="true" />
-              React client scaffold
-            </p>
-            <h1 id="hero-title">Your files, in one calm place.</h1>
-            <p className="hero__lead">
-              The REST API is ready. Sign-in, folders, uploads, previews, and
-              share links will be built from this React workspace.
-            </p>
-            <div className="hero__actions">
-              <a className="button button--primary" href="/api/health">
-                Check API health
-              </a>
-              <a className="button button--secondary" href="/api/auth/session">
-                Session status
-              </a>
+      <main className="landing-page">
+        <section className="hero" aria-labelledby="hero-title">
+          <div className="container hero__grid">
+            <div className="hero__copy">
+              <p className="eyebrow">
+                <span className="eyebrow__dot" aria-hidden="true" />
+                A small drive for your files.
+              </p>
+              <h1 id="hero-title">
+                Upload it once. Find it when you need it.
+              </h1>
+              <p className="hero__lead">
+                Mini Drive keeps folders, files, previews, and expiring links
+                together. Ten files per upload, 5 MB each.
+              </p>
+              <div className="hero__actions">
+                {user ? (
+                  <Link className="button button--primary" to="/drive">
+                    Open my drive
+                  </Link>
+                ) : (
+                  <>
+                    <Link className="button button--primary" to="/register">
+                      Create my drive
+                    </Link>
+                    <Link className="button button--secondary" to="/login">
+                      Sign in
+                    </Link>
+                  </>
+                )}
+              </div>
+              <ul className="hero__assurances" aria-label="Highlights">
+                {assurances.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <li key={item.label}>
+                      <Icon className="icon" aria-hidden="true" />
+                      {item.label}
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-            <ul className="hero__assurances" aria-label="Highlights">
-              {assurances.map((item) => (
-                <li key={item}>
-                  <CheckIcon />
-                  {item}
-                </li>
-              ))}
+
+            <div className="hero__visual" aria-hidden="true">
+              <div className="drive-window">
+                <div className="drive-window__bar">
+                  <span className="drive-window__dots">
+                    <span />
+                    <span />
+                    <span />
+                  </span>
+                  <span className="drive-window__title">My drive</span>
+                  <span className="drive-window__avatar">J</span>
+                </div>
+
+                <div className="drive-window__search">
+                  <FiSearch className="icon" />
+                  <span>Search in drive</span>
+                  <span className="drive-window__shortcut">/</span>
+                </div>
+
+                <div className="drive-window__toolbar">
+                  <span className="drive-chip drive-chip--active">
+                    All files
+                  </span>
+                  <span className="drive-chip">Folders</span>
+                  <span className="drive-chip">Recent</span>
+                </div>
+
+                <div className="drive-window__grid">
+                  {driveItems.map((item) => (
+                    <DriveItem key={item.name} item={item} />
+                  ))}
+                </div>
+
+                <div className="share-float">
+                  <span className="share-float__icon">
+                    <FiLink className="icon" />
+                  </span>
+                  <span>
+                    <strong>Share link</strong>
+                    <span>Expires in 7 days</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="benefits" aria-labelledby="benefits-title">
+          <div className="container">
+            <h2 id="benefits-title" className="visually-hidden">
+              What Mini Drive includes
+            </h2>
+            <ul className="benefit-list">
+              {benefits.map((benefit) => {
+                const Icon = benefit.icon;
+
+                return (
+                  <li className="benefit" key={benefit.title}>
+                    <span
+                      className={`benefit__icon benefit__icon--${benefit.tone}`}
+                    >
+                      <Icon className="icon" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h3>{benefit.title}</h3>
+                      <p>{benefit.text}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
+        </section>
 
-          <div className="hero__visual" aria-hidden="true">
-            <div className="drive-window">
-              <div className="drive-window__bar">
-                <span className="drive-window__dots">
-                  <span />
-                  <span />
-                  <span />
-                </span>
-                <span className="drive-window__title">My drive</span>
-                <span className="drive-window__avatar">J</span>
-              </div>
+        <section
+          className="section section--tint"
+          id="features"
+          aria-labelledby="features-title"
+        >
+          <div className="container">
+            <div className="section-heading">
+              <p className="eyebrow">Inside the drive</p>
+              <h2 id="features-title">
+                Folders, search, previews, and expiring links.
+              </h2>
+              <p>
+                Mini Drive stores files, helps you find them, and lets you
+                share a folder for a limited time.
+              </p>
+            </div>
 
-              <div className="drive-window__search">
-                <svg
-                  className="icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="6.5" />
-                  <path d="m16 16 4 4" />
-                </svg>
-                <span>Search in drive</span>
-                <span className="drive-window__shortcut">/</span>
-              </div>
+            <div className="feature-grid">
+              {features.map((feature) => {
+                const Icon = feature.icon;
 
-              <div className="drive-window__toolbar">
-                <span className="drive-chip drive-chip--active">All files</span>
-                <span className="drive-chip">Folders</span>
-                <span className="drive-chip">Recent</span>
-              </div>
-
-              <div className="drive-window__grid">
-                {files.map((file) => (
-                  <FileCard key={file.name} file={file} />
-                ))}
-              </div>
-
-              <div className="share-float">
-                <span className="share-float__icon">
-                  <svg
-                    className="icon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M10 13.5a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 1 0-5.7-5.7L11.5 6.3" />
-                    <path d="M14 10.5a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 1 0 5.7 5.7l1.3-1.3" />
-                  </svg>
-                </span>
-                <span>
-                  <strong>Share link</strong>
-                  <span>Expires in 7 days</span>
-                </span>
-              </div>
+                return (
+                  <article className="feature-card" key={feature.title}>
+                    <span
+                      className={`feature-icon feature-icon--${feature.tone}`}
+                    >
+                      <Icon className="icon" aria-hidden="true" />
+                    </span>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.text}</p>
+                  </article>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
 
-    <footer className="site-footer">
-      <div className="container site-footer__inner">
-        <p className="site-footer__note">File Uploader API and React client.</p>
-        <nav className="site-footer__nav" aria-label="API status">
-          <a href="/api/health">Health</a>
-          <a href="/api/auth/session">Session</a>
-        </nav>
-      </div>
-    </footer>
-  </>
-);
+        <section
+          className="section"
+          id="how-it-works"
+          aria-labelledby="how-it-works-title"
+        >
+          <div className="container">
+            <div className="section-heading">
+              <p className="eyebrow">How it works</p>
+              <h2 id="how-it-works-title">
+                From empty drive to first share link.
+              </h2>
+            </div>
+
+            <ol className="steps">
+              {steps.map((step) => (
+                <li className="step" key={step.number}>
+                  <span className="step__number">{step.number}</span>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          className="section section--tint"
+          id="privacy"
+          aria-labelledby="privacy-title"
+        >
+          <div className="container privacy">
+            <div className="privacy__copy">
+              <p className="eyebrow">Privacy</p>
+              <h2 id="privacy-title">Sharing is a choice you can undo.</h2>
+              <p className="privacy__lead">
+                Your drive is tied to your account. Share links are read-only,
+                expire on a date you choose, and can be revoked.
+              </p>
+              <ul className="privacy__list">
+                {privacyPoints.map((point) => (
+                  <li key={point}>
+                    <span className="privacy__check">
+                      <FiCheck className="icon" aria-hidden="true" />
+                    </span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="privacy__visual" aria-hidden="true">
+              <div className="privacy__shield">
+                <FiShield className="icon" />
+              </div>
+              <span className="privacy__chip privacy__chip--top">
+                Only you
+              </span>
+              <span className="privacy__chip privacy__chip--bottom">
+                Expires in 7 days
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="cta-section" aria-labelledby="cta-title">
+          <div className="container cta-panel">
+            <div className="cta-panel__copy">
+              <p className="eyebrow">Start with an empty drive.</p>
+              <h2 id="cta-title">
+                Create an account and upload your first file.
+              </h2>
+              <p>
+                Make a folder, add files, and share a link when you need to.
+              </p>
+            </div>
+            <div className="cta-panel__actions">
+              {user ? (
+                <Link className="button button--primary" to="/drive">
+                  Open my drive
+                </Link>
+              ) : (
+                <>
+                  <Link className="button button--primary" to="/register">
+                    Create my drive
+                  </Link>
+                  <Link className="button button--secondary" to="/login">
+                    Sign in
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="container site-footer__inner">
+          <div>
+            <Link className="brand" to="/">
+              <BrandMark className="brand__mark" />
+              Mini Drive
+            </Link>
+            <p className="site-footer__note">
+              A personal drive for folders, files, and expiring links.
+            </p>
+          </div>
+          <nav className="site-footer__nav" aria-label="Footer">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#privacy">Privacy</a>
+            {user ? (
+              <Link to="/drive">My drive</Link>
+            ) : (
+              <>
+                <Link to="/login">Sign in</Link>
+                <Link to="/register">Create account</Link>
+              </>
+            )}
+          </nav>
+          <p className="site-footer__note">
+            © {year} Mini Drive
+          </p>
+        </div>
+      </footer>
+    </>
+  );
+};
 
 export default LandingPage;
