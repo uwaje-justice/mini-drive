@@ -1,22 +1,51 @@
 import { motion } from "motion/react";
-import { FiFile, FiFolder, FiLock, FiUploadCloud } from "react-icons/fi";
+import { FiAlertTriangle } from "react-icons/fi";
 
+import Button from "@/components/ui/button.jsx";
 import useSession from "@/features/auth/hooks/use-session.js";
+import ActivityList from "@/features/drive/components/activity-list.jsx";
+import CategoryGrid from "@/features/drive/components/category-grid.jsx";
+import DriveHero from "@/features/drive/components/drive-hero.jsx";
+import DrivePanel from "@/features/drive/components/drive-panel.jsx";
+import useDriveOverview from "@/features/drive/hooks/use-drive-overview.js";
 
-const highlights = [
-  { icon: FiLock, label: "Only you" },
-  { icon: FiUploadCloud, label: "10 files per upload" },
-  { icon: FiFile, label: "5 MB per file" },
-];
+const OverviewLoading = () => (
+  <div role="status" aria-live="polite" className="grid gap-5">
+    <span className="sr-only">Loading your drive overview</span>
+    <div className="h-72 animate-pulse rounded-2xl bg-surface-container" />
+    <div className="h-40 animate-pulse rounded-xl bg-surface-container" />
+    <div className="h-64 animate-pulse rounded-xl bg-surface-container" />
+  </div>
+);
+
+const OverviewError = ({ query }) => (
+  <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-error/20 bg-error-container px-5 py-4 text-on-error-container">
+    <div className="flex items-start gap-3">
+      <FiAlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <div>
+        <h2 className="text-base font-semibold">Could not load your drive.</h2>
+        <p className="mt-0.5 text-sm leading-6">
+          Check your connection, then try again.
+        </p>
+      </div>
+    </div>
+    <Button variant="secondary" size="sm" onClick={() => query.refetch()}>
+      Try again
+    </Button>
+  </div>
+);
 
 const DrivePage = () => {
   const session = useSession();
+  const overview = useDriveOverview();
   const email = session.data?.user?.email ?? "";
   const name = email.split("@")[0] || "there";
+  const summary = overview.data?.summary;
+  const categories = overview.data?.categories ?? [];
 
   return (
     <motion.div
-      className="mx-auto grid w-full max-w-5xl gap-8"
+      className="mx-auto grid w-full max-w-6xl gap-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
@@ -28,43 +57,31 @@ const DrivePage = () => {
         <h1 className="text-3xl font-semibold tracking-[-0.04em] text-on-surface sm:text-4xl">
           Welcome back, {name}
         </h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-on-surface-variant">
-          This is where your folders and files will live.
+        <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
+          Your files and folders, all in one place.
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-1">
-        <div className="grid gap-8 px-6 py-10 sm:px-10 sm:py-12">
-          <div className="grid size-16 place-items-center rounded-xl bg-primary-container text-primary">
-            <FiFolder className="size-8" aria-hidden="true" />
-          </div>
+      {overview.isPending ? <OverviewLoading /> : null}
+      {overview.isError ? <OverviewError query={overview} /> : null}
 
-          <div className="max-w-xl">
-            <h2 className="text-2xl font-semibold tracking-tight text-on-surface">
-              Your drive is empty
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-on-surface-variant">
-              Create a folder or upload a file to get started.
-            </p>
-          </div>
-
-          <ul className="flex flex-wrap gap-3">
-            {highlights.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <li
-                  key={item.label}
-                  className="flex items-center gap-2 rounded-full border border-outline-variant bg-surface-container-low px-3 py-1.5 text-xs font-medium text-on-surface-variant"
-                >
-                  <Icon className="size-3.5" aria-hidden="true" />
-                  {item.label}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </section>
+      {summary ? (
+        <>
+          <DriveHero
+            fileCount={summary.fileCount}
+            folderCount={summary.folderCount}
+            categoryCount={categories.length}
+          />
+          <CategoryGrid categories={categories} />
+          <DrivePanel
+            kicker="Activity"
+            title="Recent activity"
+            description="Uploads and folder creations, newest first."
+          >
+            <ActivityList activity={overview.data.activity} />
+          </DrivePanel>
+        </>
+      ) : null}
     </motion.div>
   );
 };

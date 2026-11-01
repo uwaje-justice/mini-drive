@@ -1,7 +1,20 @@
 export const queryKeys = {
   session: ["session"],
-  driveRoot: ["drive", "root"],
-  folder: (folderId) => ["drive", "folder", folderId],
+  driveOverview: ["drive", "overview"],
+  driveRoot: (page, folderPage) => ["drive", "root", page, folderPage],
+  driveCategory: (categoryId, page) => [
+    "drive",
+    "category",
+    categoryId,
+    page,
+  ],
+  folder: (folderId, page, folderPage) => [
+    "drive",
+    "folder",
+    folderId,
+    page,
+    folderPage,
+  ],
   file: (fileId) => ["files", fileId],
   fileMoveTargets: (fileId) => ["files", fileId, "move-targets"],
   folderMoveTargets: (folderId) => [

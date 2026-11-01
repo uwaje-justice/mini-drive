@@ -1,11 +1,21 @@
-import { FiFolder } from "react-icons/fi";
+import {
+  FiFile,
+  FiFolder,
+  FiHome,
+  FiSettings,
+} from "react-icons/fi";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
 import BrandMark from "@/components/brand-mark.jsx";
 import LogoutButton from "@/features/auth/components/logout-button.jsx";
 import useSession from "@/features/auth/hooks/use-session.js";
 
-const navItems = [{ to: "/drive", label: "My drive", icon: FiFolder }];
+const navItems = [
+  { to: "/drive", label: "My drive", icon: FiHome, end: true },
+  { to: "/drive/files", label: "Files", icon: FiFile },
+  { to: "/drive/folders", label: "Folders", icon: FiFolder },
+  { to: "/drive/settings", label: "Settings", icon: FiSettings },
+];
 
 const AppShell = () => {
   const session = useSession();
@@ -31,7 +41,7 @@ const AppShell = () => {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end
+                end={item.end}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium transition ${
                     isActive
@@ -77,9 +87,49 @@ const AppShell = () => {
           <LogoutButton showLabel={false} />
         </header>
 
-        <main className="flex-1 px-5 py-8 lg:px-10 lg:py-10">
+        <main className="flex-1 px-5 pb-24 pt-8 lg:px-10 lg:py-10">
           <Outlet />
         </main>
+
+        <nav
+          aria-label="Drive"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-surface px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
+        >
+          <ul className="grid grid-cols-4">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-[0.68rem] font-medium transition ${
+                        isActive
+                          ? "text-primary"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span
+                          className={`grid size-7 place-items-center rounded-full transition ${
+                            isActive ? "bg-primary-container" : ""
+                          }`}
+                        >
+                          <Icon className="size-4" aria-hidden="true" />
+                        </span>
+                        {item.label}
+                      </>
+                    )}
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
       </div>
     </div>
   );
