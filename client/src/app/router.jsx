@@ -73,6 +73,10 @@ const router = createBrowserRouter([
                 path: "categories/:categoryId",
                 lazy: lazyPage(() => import("@/pages/category-page.jsx")),
               },
+              {
+                path: "settings",
+                lazy: lazyPage(() => import("@/pages/settings-page.jsx")),
+              },
             ],
           },
         ],

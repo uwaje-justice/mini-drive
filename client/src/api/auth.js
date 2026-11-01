@@ -16,3 +16,19 @@ export const logoutUser = () =>
   request("/api/auth/logout", {
     method: "POST",
   });
+
+export const updateEmail = ({ email, currentPassword }) =>
+  request("/api/auth/email", {
+    method: "PATCH",
+    body: { email, currentPassword },
+  });
+
+export const updatePassword = ({
+  currentPassword,
+  newPassword,
+  confirmPassword,
+}) =>
+  request("/api/auth/password", {
+    method: "PATCH",
+    body: { currentPassword, newPassword, confirmPassword },
+  });

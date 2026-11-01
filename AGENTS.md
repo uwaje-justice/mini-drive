@@ -60,29 +60,44 @@ file-uploader/
 │       ├── main.jsx
 │       ├── api/
 │       │   ├── api-client.js
-│       │   └── auth.js
+│       │   ├── auth.js
+│       │   ├── drive.js
+│       │   └── files.js
 │       ├── components/
 │       │   ├── brand-mark.jsx
 │       │   ├── layout/
 │       │   ├── routing/
 │       │   └── ui/
 │       ├── features/
-│       │   └── auth/
+│       │   ├── auth/
+│       │   │   ├── components/
+│       │   │   ├── hooks/
+│       │   │   ├── apply-api-error.js
+│       │   │   └── session-cache.js
+│       │   └── drive/
 │       │       ├── components/
 │       │       ├── hooks/
-│       │       ├── apply-api-error.js
-│       │       └── session-cache.js
+│       │       ├── category-meta.js
+│       │       ├── file-meta.js
+│       │       ├── format.js
+│       │       └── params.js
 │       ├── lib/
 │       │   ├── query-client.js
 │       │   └── query-keys.js
 │       ├── pages/
 │       │   ├── about-page.jsx
+│       │   ├── category-page.jsx
 │       │   ├── drive-page.jsx
+│       │   ├── file-page.jsx
+│       │   ├── files-page.jsx
+│       │   ├── folder-page.jsx
+│       │   ├── folders-page.jsx
 │       │   ├── landing-page.jsx
 │       │   ├── login-page.jsx
 │       │   ├── not-found-page.jsx
 │       │   ├── register-page.jsx
-│       │   └── route-error-page.jsx
+│       │   ├── route-error-page.jsx
+│       │   └── settings-page.jsx
 │       └── styles/
 │           └── globals.css
 ├── eslint.config.js
@@ -117,9 +132,9 @@ Client:
 - `client/src/main.jsx` mounts React, fonts, global CSS, providers, and the router.
 - `client/src/app/router.jsx` owns the object route table and lazy page imports. `providers.jsx` wraps TanStack Query and Motion.
 - `client/src/pages/` holds one thin component per screen. Pages compose feature components; they do not call `fetch`.
-- `client/src/features/` holds domain components and hooks. Add `drive`, `files`, `folders`, `search`, and `shares` as each feature is built.
+- `client/src/features/` holds domain components and hooks. The `drive` feature owns dashboard, category, folder, and file-detail data. Add `search` and `shares` as each feature is built.
 - `client/src/components/` holds shared layout, routing guards, and UI primitives. The landing and About pages share `layout/landing-header.jsx` and `layout/landing-footer.jsx`.
-- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js` wrap it.
+- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js`, `api/drive.js`, and `api/files.js` wrap it.
 - `client/src/lib/query-keys.js` owns every TanStack Query key. `query-client.js` configures the client.
 - `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind, defines MD3 tokens in `@theme static`, and holds the base and landing styles.
 - Use MD3 token names directly: `primary`, `on-primary`, `primary-container`, `surface`, `on-surface`, `on-surface-variant`, `outline-variant`, `error`, `success`, and `warning`. Do not add alias token names.
@@ -147,6 +162,12 @@ Client:
 - Success: `{ data }`. Failure: `{ error: { code, message, fields? } }`.
 - Auth uses the session cookie. Every mutation sends the CSRF token in `x-csrf-token`.
 - `GET /api/auth/session` returns the signed-in user or `null`, plus a CSRF token.
+- `GET /api/drive/overview` returns all-drive file and folder counts, smart category counts, and the eight newest file or folder creation events.
+- `GET /api/drive?page=&folderPage=` returns top-level files and folders with separate pagination.
+- `GET /api/drive/categories/:category?page=` returns one type category across the whole drive. Categories are `photos`, `documents`, `text`, and `other`.
+- `PATCH /api/auth/email` requires `email` and `currentPassword`. A duplicate email returns `409` with the `email` field.
+- `PATCH /api/auth/password` requires `currentPassword`, `newPassword`, and `confirmPassword`. It keeps the current session and deletes the user's other sessions.
+- Account changes return the updated session `{ user, csrfToken }`. A wrong current password returns `401` with the `currentPassword` field.
 - Validated request fields are available as `req.validated`. Registration also requires `confirmPassword`.
 - JSON and binary errors use `no-store` and `nosniff`.
 - Public shares add `no-referrer` and `noindex, nofollow`.
@@ -186,6 +207,17 @@ Client:
 - Express does not serve `client/dist` yet. Production client serving is a later step.
 - Folder and file listings show 20 items per page. The API uses `page` for files
   and `folderPage` for folders.
+- Smart categories are read-only, whole-drive views. Photos match `image/*`,
+  Documents match PDF, Text matches `text/*`, and Other is the rest.
+- The overview hides Other while its count is zero. Category pages still accept
+  an empty `other` list.
+- Recent activity is derived from file and folder `createdAt` values. It shows
+  creations only; renames, moves, and deletions have no activity history.
+- The dashboard routes are `/drive`, `/drive/files`, `/drive/folders`,
+  `/drive/categories/:categoryId`, `/drive/files/:fileId`,
+  `/drive/folders/:folderId`, and `/drive/settings`.
+- Files and Folders pages list top-level items only. Nested items appear inside
+  folder pages, recent activity, and smart categories.
 - Public share links use random UUID tokens, expire after 1-365 days, and can be
   revoked. Expired, revoked, and unknown links all return the same 404.
 - Share links may point at nested folders and include descendants, but never
@@ -193,6 +225,6 @@ Client:
 - Previews are inline and limited to images, PDF, and plain text.
 - ESLint 10 tracks JSX references natively, so no React lint plugin is needed.
 - `api/tests/` uses feature names for HTTP behavior: `auth.test.js`,
-  `files.test.js`, `folders.test.js`, `search-share.test.js`, and
-  `security.test.js`. `lib`, `storage`, and `server` tests cover backend
+  `drive.test.js`, `files.test.js`, `folders.test.js`, `search-share.test.js`,
+  and `security.test.js`. `lib`, `storage`, and `server` tests cover backend
   internals used by the API.
