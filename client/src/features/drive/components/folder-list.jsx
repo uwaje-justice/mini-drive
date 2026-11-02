@@ -3,12 +3,15 @@ import { Link } from "react-router-dom";
 
 import { formatDate } from "@/features/drive/format.js";
 
-const FolderList = ({ folders }) => (
+const FolderList = ({
+  folders,
+  hrefForFolder = (folderId) => `/drive/folders/${folderId}`,
+}) => (
   <ul className="divide-y divide-outline-variant">
     {folders.map((folder) => (
       <li key={folder.id}>
         <Link
-          to={`/drive/folders/${folder.id}`}
+          to={hrefForFolder(folder.id)}
           className="group flex items-center gap-3 px-4 py-3.5 transition hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary/15 sm:px-5"
         >
           <span className="grid size-10 shrink-0 place-items-center rounded-control bg-warning-container text-on-warning-container">
