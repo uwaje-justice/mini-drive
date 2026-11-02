@@ -1,9 +1,4 @@
-import {
-  FiArchive,
-  FiFileText,
-  FiImage,
-  FiType,
-} from "react-icons/fi";
+import { FiArchive, FiFileText, FiImage } from "react-icons/fi";
 
 const categoryMeta = {
   photos: {
@@ -13,10 +8,6 @@ const categoryMeta = {
   documents: {
     icon: FiFileText,
     tone: "bg-warning-container text-on-warning-container",
-  },
-  text: {
-    icon: FiType,
-    tone: "bg-success-container text-on-success-container",
   },
   other: {
     icon: FiArchive,
