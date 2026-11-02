@@ -2,22 +2,18 @@ import {
   FiArrowLeft,
   FiArrowUpRight,
   FiBookOpen,
+  FiCheck,
   FiCode,
   FiGithub,
   FiHardDrive,
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
 
 import BrandMark from "@/components/brand-mark.jsx";
+import Container from "@/components/layout/container.jsx";
 import LandingFooter from "@/components/layout/landing-footer.jsx";
 import LandingHeader from "@/components/layout/landing-header.jsx";
+import LinkButton from "@/components/ui/link-button.jsx";
 import useSession from "@/features/auth/hooks/use-session.js";
-
-const primaryLinkClass =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15";
-
-const secondaryLinkClass =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-control border border-outline-variant bg-surface px-5 text-sm font-semibold text-primary transition hover:border-primary/30 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15";
 
 const projectFacts = [
   {
@@ -37,6 +33,41 @@ const projectFacts = [
   },
 ];
 
+const assignmentItems = [
+  {
+    title: "Express, Prisma, and Passport",
+    text: "The API uses Express and Prisma, with Passport sessions stored through Prisma.",
+  },
+  {
+    title: "Session-based authentication",
+    text: "Users sign up and sign in with an email and password. Sessions live in the database.",
+  },
+  {
+    title: "File upload form",
+    text: "Signed-in users upload files through Multer. The form shows progress and skipped files.",
+  },
+  {
+    title: "Folder management",
+    text: "Users can create, rename, move, and delete folders, then upload files inside them.",
+  },
+  {
+    title: "File details and download",
+    text: "Each file shows its name, size, upload time, and folder, with a button to download the original.",
+  },
+  {
+    title: "Cloud storage",
+    text: "Files stay on the local filesystem in development and use Cloudinary when remote storage is enabled.",
+  },
+  {
+    title: "Upload validation",
+    text: "Uploads accept up to 10 files at once, 5 MB each, and only supported image, PDF, and text types.",
+  },
+  {
+    title: "Extra credit: folder sharing",
+    text: "Share a folder and its contents for 1 to 365 days with a public link that can be revoked.",
+  },
+];
+
 const AboutPage = () => {
   const session = useSession();
   const user = session.data?.user;
@@ -45,10 +76,11 @@ const AboutPage = () => {
     <>
       <LandingHeader />
 
-      <main className="landing-page">
-        <section
+      <main className="overflow-x-clip">
+        <Container
+          as="section"
           aria-labelledby="about-title"
-          className="container grid gap-10 py-10 lg:min-h-[calc(100dvh-12rem)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16 lg:py-14"
+          className="grid gap-10 py-10 lg:min-h-[calc(100dvh-12rem)] lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-center lg:gap-16 lg:py-14"
         >
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-secondary">
@@ -76,18 +108,18 @@ const AboutPage = () => {
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
               {user ? (
-                <Link className={primaryLinkClass} to="/drive">
+                <LinkButton to="/drive" size="lg">
                   Open my drive
-                </Link>
+                </LinkButton>
               ) : (
-                <Link className={primaryLinkClass} to="/register">
+                <LinkButton to="/register" size="lg">
                   Create my drive
-                </Link>
+                </LinkButton>
               )}
-              <Link className={secondaryLinkClass} to="/">
+              <LinkButton to="/" variant="secondary" size="lg">
                 <FiArrowLeft className="size-4" aria-hidden="true" />
                 Back to home
-              </Link>
+              </LinkButton>
             </div>
           </div>
 
@@ -151,7 +183,50 @@ const AboutPage = () => {
               />
             </a>
           </aside>
-        </section>
+        </Container>
+
+        <Container
+          as="section"
+          aria-labelledby="assignment-title"
+          className="pb-14"
+        >
+          <div className="rounded-2xl border border-outline-variant bg-surface p-6 shadow-2 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-secondary">
+              The assignment
+            </p>
+            <h2
+              className="mt-2 text-2xl font-semibold leading-tight tracking-[-0.04em] text-on-surface sm:text-3xl"
+              id="assignment-title"
+            >
+              What The Odin Project asked for
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-on-surface-variant sm:text-base">
+              The brief was a stripped-down Google Drive. Mini Drive covers every
+              requirement and includes the extra-credit folder sharing feature.
+            </p>
+
+            <ul className="mt-7 grid gap-4 sm:grid-cols-2">
+              {assignmentItems.map((item) => (
+                <li
+                  className="flex gap-3 rounded-xl border border-outline-variant bg-surface-container-low p-4"
+                  key={item.title}
+                >
+                  <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-success-container text-on-success-container">
+                    <FiCheck className="size-3.5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-on-surface">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-on-surface-variant">
+                      {item.text}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Container>
       </main>
 
       <LandingFooter />
