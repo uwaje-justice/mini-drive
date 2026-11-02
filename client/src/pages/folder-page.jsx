@@ -199,7 +199,7 @@ const FolderPage = () => {
           {folderQuery.isError && folderQuery.error?.status === 404 ? (
             <DriveState
               icon={<FiFolder className="size-5" />}
-              title="Folder not found."
+              title="This folder is no longer available."
               description="It may have been moved or deleted."
               action={
                 <Link

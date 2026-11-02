@@ -49,7 +49,8 @@ const FilesPage = () => {
             Files
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-            Files at the top level. Open a folder to browse inside it.
+            These are the files at the top level. Open a folder to see what is
+            inside.
           </p>
         </div>
         <Button onClick={() => setIsUploading(true)}>
@@ -61,7 +62,7 @@ const FilesPage = () => {
       <DrivePanel
         kicker="Top-level files"
         title={total === undefined ? "Files" : formatCount(total, "file")}
-        description="Files in the main part of your drive."
+        description="Files that are not inside a folder."
         isFetching={root.isFetching}
       >
         {root.isPending ? <DriveLoading /> : null}
@@ -85,7 +86,7 @@ const FilesPage = () => {
           <DriveState
             icon={<FiFile className="size-5" />}
             title="No files at the top level."
-            description="Files inside folders still appear in Recent activity and categories."
+            description="Files inside folders appear in their folder, smart categories, and recent activity."
           />
         ) : null}
         {root.data?.files.length > 0 ? (

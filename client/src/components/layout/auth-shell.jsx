@@ -57,7 +57,7 @@ const AuthShell = ({ kicker, title, description, children, footer }) => (
             Folders for your files. Links for the ones you share.
           </h2>
           <p className="mt-5 max-w-md text-base leading-7 text-on-surface-variant">
-            Upload up to 10 files at once, preview the common ones, and send
+            Upload up to 10 files at once, preview the common ones, and share
             folder links that expire.
           </p>
 

@@ -105,7 +105,7 @@ const RegisterForm = () => {
         className="mt-1 w-full"
         isLoading={isBusy}
       >
-        Create my drive
+        Create account
       </Button>
     </form>
   );

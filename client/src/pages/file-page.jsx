@@ -146,7 +146,7 @@ const FilePage = () => {
         <DrivePanel kicker="File details" title="File not found">
           <DriveState
             icon={<Icon className="size-5" />}
-            title="This file is not here."
+            title="This file is no longer available."
             description="It may have been moved or deleted."
             action={
               <Link
@@ -192,7 +192,7 @@ const FilePage = () => {
           <DrivePanel
             kicker="Details"
             title="File information"
-            description="Where this file lives and when it arrived."
+            description="Where this file is stored and when you uploaded it."
           >
             <dl className="grid gap-0 px-4 pb-2 sm:px-5">
               <div className={metadataClass}>

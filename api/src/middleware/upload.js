@@ -23,7 +23,7 @@ const uploadFiles = (req, res, next) => {
       }
 
       if (error.code === "LIMIT_UNEXPECTED_FILE") {
-        return next(new BadRequestError("Upload at most 10 files."));
+        return next(new BadRequestError("Upload up to 10 files."));
       }
 
       return next(new BadRequestError("Upload failed."));

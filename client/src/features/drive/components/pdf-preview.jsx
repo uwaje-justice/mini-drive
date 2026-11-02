@@ -122,7 +122,7 @@ const PdfPreview = ({ file, previewUrl }) => {
       <DriveState
         icon={<Spinner className="size-5" />}
         title="Loading PDF."
-        description="Preparing the pages for this screen."
+        description="Loading the first page."
       />
     );
   }

@@ -6,9 +6,7 @@ const errorMessage = (error) => {
     return error.statusText || "The page could not be loaded.";
   }
 
-  if (error instanceof Error) return error.message;
-
-  return "Try again in a moment.";
+  return "Something went wrong while loading this page. Try again in a moment.";
 };
 
 const RouteErrorPage = () => {

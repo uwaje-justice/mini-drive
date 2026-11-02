@@ -103,8 +103,9 @@ const PublicSharePage = () => {
                     {folder.name}
                   </h1>
                   <p className="mt-1 text-sm text-on-surface-variant">
-                    Link expires {formatDate(data.share.expiresAt)}. Anyone with
-                    this link can view, preview, and download these files.
+                    This link expires on {formatDate(data.share.expiresAt)}.
+                    Anyone with the link can view, preview, and download these
+                    files.
                   </p>
                 </div>
               </div>
@@ -122,7 +123,7 @@ const PublicSharePage = () => {
                 ? formatCount(itemCount, "item")
                 : "Shared folder"
             }
-            description="Shared with Mini Drive."
+            description="Files and folders inside this shared link."
             isFetching={shareQuery.isFetching}
           >
             {shareQuery.isPending ? <DriveLoading rows={6} /> : null}
@@ -164,7 +165,7 @@ const PublicSharePage = () => {
               <DriveState
                 icon={<FiFolder className="size-5" />}
                 title="This folder is empty."
-                description="Nothing has been shared here yet."
+                description="This shared folder has no files or folders."
               />
             ) : null}
 

@@ -29,7 +29,7 @@ const projectFacts = [
   {
     icon: FiHardDrive,
     label: "Limits",
-    value: "10 files per upload. 5 MB each. Links last 1 to 365 days.",
+    value: "Up to 10 files per upload. 5 MB each. Links last 1 to 365 days.",
   },
 ];
 
@@ -101,8 +101,8 @@ const AboutPage = () => {
               </p>
               <p>
                 The project stays deliberately small: up to 10 files per
-                upload, 5 MB per file, and share links from 1 to 365 days. The
-                API uses Express and Prisma. The client uses React.
+                upload, 5 MB per file, and share links that last 1 to 365 days.
+                The API uses Express and Prisma. The client uses React.
               </p>
             </div>
 
@@ -113,7 +113,7 @@ const AboutPage = () => {
                 </LinkButton>
               ) : (
                 <LinkButton to="/register" size="lg">
-                  Create my drive
+                  Create account
                 </LinkButton>
               )}
               <LinkButton to="/" variant="secondary" size="lg">

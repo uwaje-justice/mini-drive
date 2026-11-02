@@ -34,7 +34,7 @@ const SearchResultList = ({ results }) => (
               </strong>
               <span className="truncate text-xs text-on-surface-variant">
                 {isFolder
-                  ? `Folder · in ${result.path}`
+                  ? `Folder in ${result.path}`
                   : `${formatFileSize(result.size)} · ${result.path} · ${formatDate(result.createdAt)}`}
               </span>
             </span>

@@ -31,7 +31,7 @@ const FilePreview = ({ file, previewUrl, downloadUrl }) => {
           <DriveState
             icon={<Spinner className="size-5" />}
             title="Loading PDF."
-            description="Preparing the in-app viewer."
+            description="Loading the first page."
           />
         }
       >
@@ -53,7 +53,7 @@ const FilePreview = ({ file, previewUrl, downloadUrl }) => {
   return (
     <DriveState
       icon={<FiEyeOff className="size-5" />}
-      title="No preview for this file."
+      title="This file has no preview."
       description="Download the file to open it."
       action={
         <a href={downloadUrl} className={downloadLinkClass} download>

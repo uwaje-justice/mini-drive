@@ -69,7 +69,7 @@ const MoveDialog = ({
         ) : null}
 
         <SelectField
-          label="Destination"
+          label="Move to"
           error={errors.destination?.message}
           disabled={targetsPending || targetsError}
           {...register("destination")}

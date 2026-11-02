@@ -176,7 +176,7 @@ test("file upload rejects missing, oversized, and over-limit batches", async () 
   assert.equal(oversized.headers["x-content-type-options"], "nosniff");
   assert.match(oversized.body.error.message, /5 MB or smaller/);
   assert.equal(tooMany.status, 400);
-  assert.match(tooMany.body.error.message, /at most 10 files/);
+  assert.match(tooMany.body.error.message, /up to 10 files/);
   assert.equal(await prisma.file.count({ where: { ownerId: user.id } }), 0);
 });
 

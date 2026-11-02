@@ -103,7 +103,7 @@ const ShareDialog = ({ open, folder, onClose }) => {
         title="Share folder"
         description={
           folder
-            ? `Create a public link for ${folder.name} and everything inside it.`
+            ? `Create a public link for ${folder.name} and its contents.`
             : "Create a public link for this folder."
         }
         size="lg"
@@ -121,7 +121,7 @@ const ShareDialog = ({ open, folder, onClose }) => {
 
             <div className="flex flex-wrap items-end gap-3">
               <Field
-                label="Link lasts (days)"
+                label="Days until link expires"
                 type="number"
                 min="1"
                 max="365"
@@ -130,7 +130,7 @@ const ShareDialog = ({ open, folder, onClose }) => {
                 className="min-w-40 flex-1"
                 {...register("days", {
                   valueAsNumber: true,
-                  required: "Choose how many days the link should last.",
+                  required: "Enter how many days the link should last.",
                   min: {
                     value: 1,
                     message: "Choose a number of days from 1 to 365.",

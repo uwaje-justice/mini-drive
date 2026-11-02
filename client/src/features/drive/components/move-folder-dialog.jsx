@@ -13,7 +13,7 @@ const MoveFolderDialog = ({ open, folder, onClose }) => {
     <MoveDialog
       open={open}
       title="Move folder"
-      description="Choose a new parent folder."
+      description="Choose where to move this folder."
       currentValue={folder?.parentId ?? ""}
       targets={targetsQuery.data?.targets}
       targetsPending={targetsQuery.isPending}

@@ -67,8 +67,8 @@ const CategoryPage = () => {
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
               {category
-                ? `${formatCount(category.count, "file")} across your whole drive.`
-                : "Files from across your whole drive."}
+                ? `${formatCount(category.count, "file")} from every folder.`
+                : "Files of this type from every folder."}
             </p>
           </div>
         </header>
@@ -90,7 +90,7 @@ const CategoryPage = () => {
           <DriveState
             icon={<Icon className="size-5" />}
             title="Category not found."
-            description="Choose one of the smart categories on My drive."
+            description="Choose a category on My drive."
             action={
               <Link
                 to="/drive"

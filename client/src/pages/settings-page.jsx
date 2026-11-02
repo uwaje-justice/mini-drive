@@ -41,8 +41,8 @@ const SettingsPage = () => {
         action={<LogoutButton />}
       >
         <div className="px-4 py-4 text-sm leading-6 text-on-surface-variant sm:px-5">
-          Your email is used to sign in. Changing it signs you in with the new
-          address right away.
+          You use this email to sign in. After you change it, use the new
+          address to sign in.
         </div>
       </DrivePanel>
 

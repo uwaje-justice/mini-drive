@@ -55,7 +55,7 @@ const SearchPage = () => {
             Find anything in your drive
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-            Search file and folder names across every folder.
+            Search file and folder names across your whole drive.
           </p>
         </div>
         <SearchForm
@@ -81,7 +81,7 @@ const SearchPage = () => {
           <DriveState
             icon={<FiSearch className="size-5" />}
             title="Search your drive."
-            description="Files and folders from every folder will appear here."
+            description="Enter a name to search files and folders across your drive."
           />
         ) : null}
 

@@ -120,7 +120,7 @@ const ActivityPage = () => {
       <DrivePanel
         kicker="History"
         title="Activity history"
-        description="Changes stay listed after a file or folder is deleted."
+        description="History stays visible after a file or folder is deleted."
         action={
           total > 0 ? (
             <Button

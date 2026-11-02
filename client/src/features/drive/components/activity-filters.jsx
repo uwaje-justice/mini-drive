@@ -12,7 +12,7 @@ const actionOptions = [
   { value: "moved", label: "Moved" },
   { value: "deleted", label: "Deleted" },
   { value: "shared", label: "Shared" },
-  { value: "unshared", label: "Unshared" },
+  { value: "unshared", label: "Share revoked" },
   { value: "email_changed", label: "Email changed" },
   { value: "password_changed", label: "Password changed" },
 ];

@@ -49,7 +49,8 @@ const FoldersPage = () => {
             Folders
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-            Folders at the top level. Open one to see what it holds.
+            These are the folders at the top level. Open one to see its files and
+            folders.
           </p>
         </div>
         <Button onClick={() => setIsCreatingFolder(true)}>
@@ -63,7 +64,7 @@ const FoldersPage = () => {
         title={
           total === undefined ? "Folders" : formatCount(total, "folder")
         }
-        description="Folders in the main part of your drive."
+        description="Folders that are not inside another folder."
         isFetching={root.isFetching}
       >
         {root.isPending ? <DriveLoading /> : null}

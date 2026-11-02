@@ -5,7 +5,7 @@ import Button from "@/components/ui/button.jsx";
 import FormAlert from "@/components/ui/form-alert.jsx";
 import FormSuccess from "@/components/ui/form-success.jsx";
 import Modal from "@/components/ui/modal.jsx";
-import { formatFileSize } from "@/features/drive/format.js";
+import { formatCount, formatFileSize } from "@/features/drive/format.js";
 import useUploadFiles from "@/features/drive/hooks/use-upload-files.js";
 
 const maxFiles = 10;
@@ -49,7 +49,7 @@ const UploadDialog = ({ open, folderId = null, folderName, onClose }) => {
 
     if (skippedForSize > 0) {
       setError(
-        `Skipped ${skippedForSize} file(s). Each file must be 5 MB or smaller and not empty.`,
+        `Skipped ${formatCount(skippedForSize, "file")}. Each file must be 5 MB or smaller and cannot be empty.`,
       );
     } else if (duplicateCount > 0) {
       setError("Those files are already selected.");
@@ -57,7 +57,7 @@ const UploadDialog = ({ open, folderId = null, folderName, onClose }) => {
 
     if (nextFiles.length > maxFiles) {
       setFiles(nextFiles.slice(0, maxFiles));
-      setError("Choose at most 10 files.");
+      setError("Choose up to 10 files.");
       return;
     }
 
@@ -271,7 +271,9 @@ const UploadDialog = ({ open, folderId = null, folderName, onClose }) => {
                 isLoading={uploadFiles.isPending}
                 disabled={files.length === 0}
               >
-                Upload {files.length > 0 ? files.length : ""}
+                {files.length > 0
+                  ? `Upload ${formatCount(files.length, "file")}`
+                  : "Upload"}
               </Button>
             </div>
           </>

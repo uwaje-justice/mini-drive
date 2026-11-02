@@ -34,7 +34,7 @@ const DriveHero = ({ fileCount, folderCount, categoryCount }) => {
         <p className="mt-4 max-w-md text-sm leading-6 text-white/75">
           {isEmpty
             ? "Your drive is ready for its first file."
-            : `Across ${formatCount(folderCount, "folder")}, including nested folders.`}
+            : `Across ${formatCount(folderCount, "folder")}, including folders inside them.`}
         </p>
       </div>
 

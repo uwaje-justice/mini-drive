@@ -20,7 +20,7 @@ import LinkButton from "@/components/ui/link-button.jsx";
 import useSession from "@/features/auth/hooks/use-session.js";
 
 const assurances = [
-  { icon: FiUploadCloud, label: "10 files per upload" },
+  { icon: FiUploadCloud, label: "Up to 10 files per upload" },
   { icon: FiFile, label: "5 MB per file" },
   { icon: FiLink, label: "Links last 1 to 365 days" },
 ];
@@ -37,7 +37,7 @@ const benefits = [
     icon: FiUploadCloud,
     tone: "blue",
     title: "Batch uploads",
-    text: "Send 10 files at once and get a clear message for each skipped file.",
+    text: "Upload up to 10 files at once. Skipped files get a clear message.",
   },
   {
     icon: FiEye,
@@ -49,7 +49,7 @@ const benefits = [
     icon: FiLink,
     tone: "yellow",
     title: "Expiring links",
-    text: "Share a folder for 1 to 365 days, then close the link.",
+    text: "Share a folder for 1 to 365 days, then revoke the link.",
   },
 ];
 
@@ -63,7 +63,7 @@ const features = [
   {
     icon: FiUploadCloud,
     tone: "yellow",
-    title: "Batch upload",
+    title: "Batch uploads",
     text: "Select up to 10 files at once. Skipped files get a clear message.",
   },
   {
@@ -112,7 +112,7 @@ const steps = [
 
 const privacyPoints = [
   "Only you can open your drive.",
-  "A link exposes only the folder you choose.",
+  "A link opens only the folder you choose.",
   "Expired and revoked links stop working.",
 ];
 
@@ -189,8 +189,8 @@ const LandingPage = () => {
                 Upload it once. Find it when you need it.
               </h1>
               <p className="mb-8 max-w-[34rem] text-[clamp(1.05rem,1.5vw,1.2rem)] leading-[1.65] text-on-surface-variant text-pretty">
-                Mini Drive keeps folders, files, previews, and expiring links
-                together. Ten files per upload, 5 MB each.
+                Mini Drive keeps your folders, files, previews, and expiring
+                links in one place. Upload up to 10 files at once, 5 MB each.
               </p>
               <div className="flex flex-wrap gap-3">
                 {user ? (
@@ -200,7 +200,7 @@ const LandingPage = () => {
                 ) : (
                   <>
                     <LinkButton to="/register" className={heroButtonClass}>
-                      Create my drive
+                      Create account
                     </LinkButton>
                     <LinkButton
                       to="/login"
@@ -256,7 +256,7 @@ const LandingPage = () => {
 
                 <div className="mb-[0.65rem] flex items-center gap-2 rounded-full bg-surface-container px-[0.85rem] py-[0.65rem] text-xs text-on-surface-variant">
                   <FiSearch className="size-4 shrink-0" />
-                  <span>Search in drive</span>
+                  <span>Search your drive</span>
                   <span className="ml-auto rounded-[0.3rem] border border-outline-variant px-[0.35rem] py-[0.08rem] text-[0.62rem]">
                     /
                   </span>
@@ -480,7 +480,7 @@ const LandingPage = () => {
                 Create an account and upload your first file.
               </h2>
               <p className={`${sectionTextClass} max-w-[38rem]`}>
-                Make a folder, add files, and share a link when you need to.
+                Create a folder, add files, and share a link when you need to.
               </p>
             </div>
             <div className="relative z-[1] flex shrink-0 flex-wrap gap-3">
@@ -488,7 +488,7 @@ const LandingPage = () => {
                 <LinkButton to="/drive">Open my drive</LinkButton>
               ) : (
                 <>
-                  <LinkButton to="/register">Create my drive</LinkButton>
+                  <LinkButton to="/register">Create account</LinkButton>
                   <LinkButton to="/login" variant="secondary">
                     Sign in
                   </LinkButton>
