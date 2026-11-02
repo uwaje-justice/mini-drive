@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import { test } from "vitest";
 
+import { getSessionCookieOptions } from "../src/config/session.js";
 import contentDisposition from "../src/lib/content-disposition.js";
 import env from "../src/lib/env.js";
 import detectMimeType from "../src/lib/file-signature.js";
@@ -64,6 +65,20 @@ test("pagination parses pages and clamps to the available range", () => {
   });
   assert.equal(buildPagination({ page: 99, total: 45 }).page, 3);
   assert.equal(buildPagination({ page: 1, total: 0 }).totalPages, 0);
+});
+
+test("session cookies use cross-site settings in production", () => {
+  assert.deepEqual(
+    getSessionCookieOptions(true),
+    {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    },
+  );
+  assert.equal(getSessionCookieOptions(false).sameSite, "lax");
+  assert.equal(getSessionCookieOptions(false).secure, false);
 });
 
 test("env reads values, honors fallbacks, and throws when missing", () => {

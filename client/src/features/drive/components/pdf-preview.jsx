@@ -29,7 +29,10 @@ const PdfPreview = ({ file, previewUrl }) => {
         const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
 
         pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-        loadingTask = pdfjs.getDocument({ url: previewUrl });
+        loadingTask = pdfjs.getDocument({
+          url: previewUrl,
+          withCredentials: true,
+        });
         const document = await loadingTask.promise;
 
         if (cancelled) {

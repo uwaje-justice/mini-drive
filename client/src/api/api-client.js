@@ -1,3 +1,5 @@
+import apiUrl from "@/api/api-base.js";
+
 const mutationMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 let csrfToken = null;
@@ -46,7 +48,7 @@ const send = (path, { method = "GET", body, headers = {} } = {}) => {
     requestHeaders["x-csrf-token"] = csrfToken;
   }
 
-  return fetch(path, {
+  return fetch(apiUrl(path), {
     method,
     body: body === undefined || isForm ? body : JSON.stringify(body),
     headers: requestHeaders,
@@ -86,7 +88,7 @@ const sendUpload = (path, { body, onProgress }) =>
   new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.open("POST", path);
+    xhr.open("POST", apiUrl(path));
     xhr.withCredentials = true;
 
     if (csrfToken) xhr.setRequestHeader("x-csrf-token", csrfToken);

@@ -1,3 +1,4 @@
+import apiUrl from "@/api/api-base.js";
 import request, { requestUpload } from "@/api/api-client.js";
 
 const filePath = (fileId, suffix = "") =>
@@ -32,6 +33,7 @@ export const deleteFile = (fileId) =>
 export const getFileMoveTargets = (fileId) =>
   request(filePath(fileId, "/move-targets"));
 
-export const fileDownloadUrl = (fileId) => filePath(fileId, "/download");
+export const fileDownloadUrl = (fileId) =>
+  apiUrl(filePath(fileId, "/download"));
 
-export const filePreviewUrl = (fileId) => filePath(fileId, "/preview");
+export const filePreviewUrl = (fileId) => apiUrl(filePath(fileId, "/preview"));

@@ -1,3 +1,4 @@
+import apiUrl from "@/api/api-base.js";
 import request from "@/api/api-client.js";
 
 const folderPath = (folderId, suffix = "") =>
@@ -49,7 +50,7 @@ export const publicSharePath = (token, folderId = null) =>
     : `/share/${encodeURIComponent(token)}`;
 
 export const publicFileDownloadUrl = (token, fileId) =>
-  sharePath(token, `/files/${encodeURIComponent(fileId)}/download`);
+  apiUrl(sharePath(token, `/files/${encodeURIComponent(fileId)}/download`));
 
 export const publicFilePreviewUrl = (token, fileId) =>
-  sharePath(token, `/files/${encodeURIComponent(fileId)}/preview`);
+  apiUrl(sharePath(token, `/files/${encodeURIComponent(fileId)}/preview`));

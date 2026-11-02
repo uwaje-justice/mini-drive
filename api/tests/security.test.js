@@ -49,6 +49,30 @@ test("API mutations reject missing and invalid CSRF tokens", async () => {
   );
 });
 
+test("CORS allows only configured client origins", async () => {
+  const client = createAgent();
+  const allowed = await client
+    .options("/api/auth/session")
+    .set("Origin", "http://localhost:5173")
+    .set("Access-Control-Request-Method", "GET");
+  const blocked = await client
+    .get("/api/auth/session")
+    .set("Origin", "https://evil.example");
+
+  assert.equal(allowed.status, 204);
+  assert.equal(
+    allowed.headers["access-control-allow-origin"],
+    "http://localhost:5173",
+  );
+  assert.equal(allowed.headers["access-control-allow-credentials"], "true");
+  assert.match(
+    allowed.headers["access-control-allow-headers"],
+    /x-csrf-token/i,
+  );
+  assert.match(allowed.headers.vary, /Origin/);
+  assert.equal(blocked.headers["access-control-allow-origin"], undefined);
+});
+
 test("API multipart uploads require the CSRF header", async () => {
   const client = createAgent();
   const user = await registerApiUser(client, "api-csrf-upload");

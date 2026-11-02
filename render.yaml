@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: mini-drive-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run prisma:generate
+    startCommand: npm run prisma:migrate:deploy && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: STORAGE_DRIVER
+        value: cloudinary
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: CLIENT_ORIGINS
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
