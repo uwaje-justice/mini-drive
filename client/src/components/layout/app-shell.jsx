@@ -21,9 +21,6 @@ const navItems = [
   { to: "/drive/folders", label: "Folders", icon: FiFolder },
   { to: "/drive/settings", label: "Settings", icon: FiSettings },
 ];
-const mobileNavItems = navItems.filter(
-  (item) => item.to !== "/drive/activity",
-);
 
 const AppShell = () => {
   const session = useSession();
@@ -126,8 +123,8 @@ const AppShell = () => {
           aria-label="Drive"
           className="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-surface px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
         >
-          <ul className="grid grid-cols-4">
-            {mobileNavItems.map((item) => {
+          <ul className="grid grid-cols-5">
+            {navItems.map((item) => {
               const Icon = item.icon;
 
               return (
