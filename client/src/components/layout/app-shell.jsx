@@ -1,24 +1,33 @@
 import {
+  FiClock,
   FiFile,
   FiFolder,
   FiHome,
+  FiSearch,
   FiSettings,
 } from "react-icons/fi";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import BrandMark from "@/components/brand-mark.jsx";
 import LogoutButton from "@/features/auth/components/logout-button.jsx";
+import ProfileMenu from "@/features/auth/components/profile-menu.jsx";
 import useSession from "@/features/auth/hooks/use-session.js";
+import SearchForm from "@/features/search/components/search-form.jsx";
 
 const navItems = [
   { to: "/drive", label: "My drive", icon: FiHome, end: true },
+  { to: "/drive/activity", label: "Activity", icon: FiClock },
   { to: "/drive/files", label: "Files", icon: FiFile },
   { to: "/drive/folders", label: "Folders", icon: FiFolder },
   { to: "/drive/settings", label: "Settings", icon: FiSettings },
 ];
+const mobileNavItems = navItems.filter(
+  (item) => item.to !== "/drive/activity",
+);
 
 const AppShell = () => {
   const session = useSession();
+  const navigate = useNavigate();
   const email = session.data?.user?.email ?? "";
   const initial = email.charAt(0).toUpperCase() || "?";
 
@@ -32,6 +41,19 @@ const AppShell = () => {
           <BrandMark className="size-9" />
           Mini Drive
         </Link>
+
+        <div className="px-1">
+          <SearchForm
+            compact
+            onSearch={(value) =>
+              navigate(
+                value
+                  ? `/drive/search?q=${encodeURIComponent(value)}`
+                  : "/drive/search",
+              )
+            }
+          />
+        </div>
 
         <nav className="grid gap-1" aria-label="Drive">
           {navItems.map((item) => {
@@ -84,10 +106,19 @@ const AppShell = () => {
             <BrandMark className="size-8" />
             Mini Drive
           </Link>
-          <LogoutButton showLabel={false} />
+          <div className="flex items-center gap-1">
+            <Link
+              to="/drive/search"
+              className="grid size-9 place-items-center rounded-full text-on-surface-variant transition hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              aria-label="Search your drive"
+            >
+              <FiSearch className="size-5" aria-hidden="true" />
+            </Link>
+            <ProfileMenu email={email} />
+          </div>
         </header>
 
-        <main className="flex-1 px-5 pb-24 pt-8 lg:px-10 lg:py-10">
+        <main className="flex-1 px-5 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-8 lg:px-10 lg:py-10">
           <Outlet />
         </main>
 
@@ -96,7 +127,7 @@ const AppShell = () => {
           className="fixed inset-x-0 bottom-0 z-30 border-t border-outline-variant bg-surface px-2 pb-[env(safe-area-inset-bottom)] lg:hidden"
         >
           <ul className="grid grid-cols-4">
-            {navItems.map((item) => {
+            {mobileNavItems.map((item) => {
               const Icon = item.icon;
 
               return (
