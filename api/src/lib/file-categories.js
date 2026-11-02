@@ -7,12 +7,12 @@ const categoryDefinitions = [
   {
     id: "documents",
     name: "Documents",
-    filter: { mimeType: "application/pdf" },
-  },
-  {
-    id: "text",
-    name: "Text",
-    filter: { mimeType: { startsWith: "text/" } },
+    filter: {
+      OR: [
+        { mimeType: "application/pdf" },
+        { mimeType: { startsWith: "text/" } },
+      ],
+    },
   },
   {
     id: "other",
@@ -44,8 +44,9 @@ export const getFileCategoryFilter = (id) =>
 
 export const getFileCategoryId = (mimeType) => {
   if (mimeType.startsWith("image/")) return "photos";
-  if (mimeType === "application/pdf") return "documents";
-  if (mimeType.startsWith("text/")) return "text";
+  if (mimeType === "application/pdf" || mimeType.startsWith("text/")) {
+    return "documents";
+  }
 
   return "other";
 };

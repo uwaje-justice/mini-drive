@@ -7,10 +7,10 @@ import {
 } from "../lib/file-categories.js";
 import { buildPagination } from "../lib/pagination.js";
 import prisma from "../lib/prisma.js";
+import activityService from "./activity-service.js";
 
 const activityLimit = 8;
 const folderRelation = { select: { id: true, name: true } };
-const parentRelation = { select: { id: true, name: true } };
 
 const countCategories = (groups) =>
   groups.reduce(
@@ -25,53 +25,17 @@ const countCategories = (groups) =>
     Object.fromEntries(fileCategories.map((category) => [category.id, 0])),
   );
 
-const buildActivity = (files, folders) =>
-  [
-    ...files.map((file) => ({
-      type: "file",
-      action: "created",
-      id: file.id,
-      name: file.name,
-      folder: file.folder,
-      parent: null,
-      createdAt: file.createdAt,
-    })),
-    ...folders.map((folder) => ({
-      type: "folder",
-      action: "created",
-      id: folder.id,
-      name: folder.name,
-      folder: null,
-      parent: folder.parent,
-      createdAt: folder.createdAt,
-    })),
-  ]
-    .sort((left, right) => right.createdAt - left.createdAt)
-    .slice(0, activityLimit);
-
 const listOverview = async (ownerId) => {
-  const [fileCount, folderCount, mimeGroups, files, folders] =
-    await Promise.all([
-      prisma.file.count({ where: { ownerId } }),
-      prisma.folder.count({ where: { ownerId } }),
-      prisma.file.groupBy({
-        by: ["mimeType"],
-        where: { ownerId },
-        _count: { _all: true },
-      }),
-      prisma.file.findMany({
-        where: { ownerId },
-        orderBy: { createdAt: "desc" },
-        take: activityLimit,
-        include: { folder: folderRelation },
-      }),
-      prisma.folder.findMany({
-        where: { ownerId },
-        orderBy: { createdAt: "desc" },
-        take: activityLimit,
-        include: { parent: parentRelation },
-      }),
-    ]);
+  const [fileCount, folderCount, mimeGroups, activity] = await Promise.all([
+    prisma.file.count({ where: { ownerId } }),
+    prisma.folder.count({ where: { ownerId } }),
+    prisma.file.groupBy({
+      by: ["mimeType"],
+      where: { ownerId },
+      _count: { _all: true },
+    }),
+    activityService.listRecent(ownerId, activityLimit),
+  ]);
   const counts = countCategories(mimeGroups);
   const categories = fileCategories
     .filter((category) => category.id !== "other" || counts.other > 0)
@@ -80,7 +44,7 @@ const listOverview = async (ownerId) => {
   return {
     summary: { fileCount, folderCount },
     categories,
-    activity: buildActivity(files, folders),
+    activity,
   };
 };
 
@@ -107,4 +71,18 @@ const listCategory = async (ownerId, categoryId, { page } = {}) => {
   };
 };
 
-export default { listOverview, listCategory };
+const listActivity = async (ownerId, filters = {}) =>
+  activityService.listPage(ownerId, filters);
+
+const removeActivity = (ownerId, activityId) =>
+  activityService.remove(ownerId, activityId);
+
+const clearActivity = (ownerId) => activityService.clear(ownerId);
+
+export default {
+  listOverview,
+  listCategory,
+  listActivity,
+  removeActivity,
+  clearActivity,
+};

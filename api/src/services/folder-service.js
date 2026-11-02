@@ -4,6 +4,7 @@ import NotFoundError from "../errors/not-found-error.js";
 import { buildPagination } from "../lib/pagination.js";
 import prisma from "../lib/prisma.js";
 import storage from "../lib/storage.js";
+import { recordActivity } from "./activity-service.js";
 
 const rootParentKey = "root";
 const rootCrumb = { id: null, name: "My drive" };
@@ -242,14 +243,27 @@ const createFolder = async (ownerId, { name, parentId }) => {
   await assertUniqueName(ownerId, parentKey, nameKey);
 
   try {
-    return await prisma.folder.create({
-      data: {
-        name: trimmedName,
-        nameKey,
+    return await prisma.$transaction(async (tx) => {
+      const created = await tx.folder.create({
+        data: {
+          name: trimmedName,
+          nameKey,
+          ownerId,
+          parentId: parent?.id ?? null,
+          parentKey,
+        },
+      });
+
+      await recordActivity(tx, {
         ownerId,
-        parentId: parent?.id ?? null,
-        parentKey,
-      },
+        action: "created",
+        targetType: "folder",
+        targetId: created.id,
+        targetName: created.name,
+        locationName: parent?.name ?? null,
+      });
+
+      return created;
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -264,13 +278,30 @@ const renameFolder = async (ownerId, id, { name }) => {
   const folder = await getFolder(ownerId, id);
   const trimmedName = name.trim();
   const nameKey = folderNameKey(trimmedName);
+  const parent = folder.parentId
+    ? await getFolder(ownerId, folder.parentId)
+    : null;
 
   await assertUniqueName(ownerId, folder.parentKey, nameKey, folder.id);
 
   try {
-    return await prisma.folder.update({
-      where: { id: folder.id },
-      data: { name: trimmedName, nameKey },
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.folder.update({
+        where: { id: folder.id },
+        data: { name: trimmedName, nameKey },
+      });
+
+      await recordActivity(tx, {
+        ownerId,
+        action: "renamed",
+        targetType: "folder",
+        targetId: updated.id,
+        targetName: updated.name,
+        previousName: folder.name,
+        locationName: parent?.name ?? null,
+      });
+
+      return updated;
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -284,6 +315,9 @@ const renameFolder = async (ownerId, id, { name }) => {
 const moveFolder = async (ownerId, id, { parentId }) => {
   const folder = await getFolder(ownerId, id);
   const parent = await assertParent(ownerId, parentId);
+  const previousParent = folder.parentId
+    ? await getFolder(ownerId, folder.parentId)
+    : null;
 
   if (parent) {
     const folderIds = await collectFolderIds(ownerId, folder.id);
@@ -300,12 +334,26 @@ const moveFolder = async (ownerId, id, { parentId }) => {
   await assertUniqueName(ownerId, parentKey, folder.nameKey, folder.id);
 
   try {
-    return await prisma.folder.update({
-      where: { id: folder.id },
-      data: {
-        parentId: parent?.id ?? null,
-        parentKey,
-      },
+    return await prisma.$transaction(async (tx) => {
+      const updated = await tx.folder.update({
+        where: { id: folder.id },
+        data: {
+          parentId: parent?.id ?? null,
+          parentKey,
+        },
+      });
+
+      await recordActivity(tx, {
+        ownerId,
+        action: "moved",
+        targetType: "folder",
+        targetId: updated.id,
+        targetName: updated.name,
+        fromLocationName: previousParent?.name ?? null,
+        toLocationName: parent?.name ?? null,
+      });
+
+      return updated;
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -319,6 +367,9 @@ const moveFolder = async (ownerId, id, { parentId }) => {
 const deleteFolder = async (ownerId, id) => {
   const folder = await getFolder(ownerId, id);
   const folderIds = await collectFolderIds(ownerId, id);
+  const parent = folder.parentId
+    ? await getFolder(ownerId, folder.parentId)
+    : null;
 
   const files = await prisma.file.findMany({
     where: { ownerId, folderId: { in: folderIds } },
@@ -331,12 +382,21 @@ const deleteFolder = async (ownerId, id) => {
     },
   });
 
-  await prisma.$transaction([
-    prisma.file.deleteMany({
+  await prisma.$transaction(async (tx) => {
+    await tx.file.deleteMany({
       where: { ownerId, folderId: { in: folderIds } },
-    }),
-    prisma.folder.deleteMany({ where: { id: { in: folderIds } } }),
-  ]);
+    });
+    await tx.folder.deleteMany({ where: { id: { in: folderIds } } });
+
+    await recordActivity(tx, {
+      ownerId,
+      action: "deleted",
+      targetType: "folder",
+      targetId: folder.id,
+      targetName: folder.name,
+      locationName: parent?.name ?? null,
+    });
+  });
 
   const removals = await Promise.allSettled(
     files.map((file) => storage.remove(file)),

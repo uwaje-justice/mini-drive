@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import ConflictError from "../errors/conflict-error.js";
 import UnauthorizedError from "../errors/unauthorized-error.js";
 import prisma from "../lib/prisma.js";
+import { recordActivity } from "./activity-service.js";
 
 const emailConflictCode = "P2002";
 
@@ -49,13 +50,27 @@ const assertCurrentPassword = async (userId, currentPassword) => {
 };
 
 const updateEmail = async (userId, { email, currentPassword }) => {
-  await assertCurrentPassword(userId, currentPassword);
+  const currentUser = await assertCurrentPassword(userId, currentPassword);
 
   try {
-    return await prisma.user.update({
-      where: { id: userId },
-      data: { email },
-      select: { id: true, email: true, createdAt: true },
+    return await prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: { email },
+        select: { id: true, email: true, createdAt: true },
+      });
+
+      await recordActivity(tx, {
+        ownerId: userId,
+        action: "email_changed",
+        targetType: "account",
+        targetId: userId,
+        targetName: "Account",
+        previousEmail: currentUser.email,
+        nextEmail: user.email,
+      });
+
+      return user;
     });
   } catch (error) {
     if (error.code === emailConflictCode) {
@@ -73,21 +88,31 @@ const updatePassword = async (
   await assertCurrentPassword(userId, currentPassword);
 
   const passwordHash = await argon2.hash(newPassword);
-  const [user] = await prisma.$transaction([
-    prisma.user.update({
+
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
       where: { id: userId },
       data: { passwordHash },
       select: { id: true, email: true, createdAt: true },
-    }),
-    prisma.session.deleteMany({
+    });
+
+    await tx.session.deleteMany({
       where: {
         data: { contains: userId },
         sid: { not: currentSessionId },
       },
-    }),
-  ]);
+    });
 
-  return user;
+    await recordActivity(tx, {
+      ownerId: userId,
+      action: "password_changed",
+      targetType: "account",
+      targetId: userId,
+      targetName: "Account",
+    });
+
+    return user;
+  });
 };
 
 export default {

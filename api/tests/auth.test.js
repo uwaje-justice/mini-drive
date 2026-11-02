@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { onTestFinished,test } from "vitest";
+import { onTestFinished, test } from "vitest";
 
 import prisma from "../src/lib/prisma.js";
 import {
@@ -196,6 +196,9 @@ test("API email changes require the current password and a unique email", async 
     currentPassword: testPassword,
   });
   const session = await getApiSession(client);
+  const activity = await prisma.activity.findMany({
+    where: { ownerId: user.id, action: "email_changed" },
+  });
 
   assert.equal(wrongPassword.status, 401);
   assert.equal(wrongPassword.body.error.code, "UNAUTHORIZED");
@@ -210,6 +213,11 @@ test("API email changes require the current password and a unique email", async 
     (await prisma.user.findUnique({ where: { id: user.id } })).email,
     nextEmail,
   );
+  assert.equal(activity.length, 1);
+  assert.equal(activity[0].targetType, "account");
+  assert.equal(activity[0].targetName, "Account");
+  assert.equal(activity[0].previousEmail, user.email);
+  assert.equal(activity[0].nextEmail, nextEmail);
 });
 
 test("API password changes update the hash and end other sessions", async () => {
@@ -254,6 +262,9 @@ test("API password changes update the hash and end other sessions", async () => 
     password: "new-password-123",
   });
   const updated = await prisma.user.findUnique({ where: { id: user.id } });
+  const activity = await prisma.activity.findMany({
+    where: { ownerId: user.id, action: "password_changed" },
+  });
 
   assert.equal(before, 2);
   assert.equal(wrongPassword.status, 401);
@@ -269,4 +280,8 @@ test("API password changes update the hash and end other sessions", async () => 
   assert.match(updated.passwordHash, /^\$argon2/);
   assert.equal(oldLogin.status, 401);
   assert.equal(newLogin.status, 200);
+  assert.equal(activity.length, 1);
+  assert.equal(activity[0].targetType, "account");
+  assert.equal(activity[0].targetName, "Account");
+  assert.equal(JSON.stringify(activity).includes("new-password-123"), false);
 });

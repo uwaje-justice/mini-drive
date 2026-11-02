@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import NotFoundError from "../errors/not-found-error.js";
 import prisma from "../lib/prisma.js";
+import { recordActivity } from "./activity-service.js";
 import folderService from "./folder-service.js";
 
 const dayInMs = 24 * 60 * 60 * 1000;
@@ -22,23 +23,46 @@ const listShareLinks = async (ownerId, folderId) => {
 const createShareLink = async (ownerId, folderId, days) => {
   const folder = await folderService.getFolder(ownerId, folderId);
 
-  return prisma.shareLink.create({
-    data: {
-      token: randomUUID(),
-      folderId: folder.id,
-      expiresAt: new Date(Date.now() + days * dayInMs),
-    },
+  return prisma.$transaction(async (tx) => {
+    const link = await tx.shareLink.create({
+      data: {
+        token: randomUUID(),
+        folderId: folder.id,
+        expiresAt: new Date(Date.now() + days * dayInMs),
+      },
+    });
+
+    await recordActivity(tx, {
+      ownerId,
+      action: "shared",
+      targetType: "folder",
+      targetId: folder.id,
+      targetName: folder.name,
+    });
+
+    return link;
   });
 };
 
 const revokeShareLink = async (ownerId, folderId, shareId) => {
+  const folder = await folderService.getFolder(ownerId, folderId);
   const link = await prisma.shareLink.findFirst({
-    where: { id: shareId, folderId, folder: { ownerId } },
+    where: { id: shareId, folderId: folder.id },
   });
 
   if (!link) throw new NotFoundError("Share link not found.");
 
-  await prisma.shareLink.delete({ where: { id: link.id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.shareLink.delete({ where: { id: link.id } });
+
+    await recordActivity(tx, {
+      ownerId,
+      action: "unshared",
+      targetType: "folder",
+      targetId: folder.id,
+      targetName: folder.name,
+    });
+  });
 
   return link;
 };

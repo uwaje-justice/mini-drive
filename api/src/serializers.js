@@ -81,16 +81,18 @@ export const serializeDriveCategory = (category) => ({
 });
 
 export const serializeActivity = (activity) => ({
-  type: activity.type,
-  action: activity.action,
   id: activity.id,
-  name: activity.name,
-  folder: activity.folder
-    ? { id: activity.folder.id, name: activity.folder.name }
-    : null,
-  parent: activity.parent
-    ? { id: activity.parent.id, name: activity.parent.name }
-    : null,
+  action: activity.action,
+  targetType: activity.targetType,
+  targetId: activity.targetType === "account" ? null : (activity.targetId ?? null),
+  targetName: activity.targetName,
+  previousName: activity.previousName ?? null,
+  previousEmail: activity.previousEmail ?? null,
+  nextEmail: activity.nextEmail ?? null,
+  locationName: activity.locationName ?? null,
+  fromLocationName: activity.fromLocationName ?? null,
+  toLocationName: activity.toLocationName ?? null,
+  available: Boolean(activity.available),
   createdAt: serializeDate(activity.createdAt),
 });
 
@@ -98,6 +100,11 @@ export const serializeDriveOverview = ({ summary, categories, activity }) => ({
   summary,
   categories: categories.map(serializeDriveCategory),
   activity: activity.map(serializeActivity),
+});
+
+export const serializeActivityListing = ({ activity, pagination }) => ({
+  activity: activity.map(serializeActivity),
+  pagination: serializePagination(pagination),
 });
 
 export const serializeCategoryListing = ({
