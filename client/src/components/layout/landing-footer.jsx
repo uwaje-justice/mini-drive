@@ -1,3 +1,4 @@
+import { FiGithub } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
 import BrandLink from "@/components/layout/brand-link.jsx";
@@ -34,15 +35,6 @@ const LandingFooter = () => {
           <Link to="/about" className={footerLinkClass}>
             About
           </Link>
-          <a
-            aria-label="View the project source on GitHub (opens in a new tab)"
-            className={footerLinkClass}
-            href="https://github.com/uwaje-justice/mini-drive"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            GitHub
-          </a>
           {user ? (
             <Link to="/drive" className={footerLinkClass}>
               My drive
@@ -58,7 +50,23 @@ const LandingFooter = () => {
             </>
           )}
         </nav>
-        <p className="text-xs text-on-surface-variant">© {year} Mini Drive</p>
+        <div className="flex items-center gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-2">
+          <a
+            aria-label="View the project source on GitHub (opens in a new tab)"
+            className={`inline-flex items-center gap-2 ${footerLinkClass}`}
+            href="https://github.com/uwaje-justice/mini-drive"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <FiGithub className="size-4" aria-hidden="true" />
+            GitHub
+          </a>
+          <span
+            aria-hidden="true"
+            className="h-4 w-px bg-outline-variant max-sm:hidden"
+          />
+          <p className="text-xs text-on-surface-variant">© {year} Mini Drive</p>
+        </div>
       </Container>
     </footer>
   );
