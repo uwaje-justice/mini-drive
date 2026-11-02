@@ -4,6 +4,12 @@ Mini Drive is a personal file storage app. The Express API handles accounts,
 folders, uploads, previews, downloads, search, activity, and expiring share
 links. The React client is the only browser UI.
 
+## Live deployment
+
+- App: https://mini-drive-0.netlify.app
+- API: https://mini-drive-api-j6ro.onrender.com
+- Source: https://github.com/uwaje-justice/mini-drive
+
 ## Features
 
 - Register, sign in, and manage an account.

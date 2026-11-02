@@ -34,6 +34,15 @@ const LandingFooter = () => {
           <Link to="/about" className={footerLinkClass}>
             About
           </Link>
+          <a
+            aria-label="View the project source on GitHub (opens in a new tab)"
+            className={footerLinkClass}
+            href="https://github.com/uwaje-justice/mini-drive"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            GitHub
+          </a>
           {user ? (
             <Link to="/drive" className={footerLinkClass}>
               My drive
