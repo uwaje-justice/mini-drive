@@ -1,6 +1,14 @@
 export const queryKeys = {
   session: ["session"],
   driveOverview: ["drive", "overview"],
+  driveActivity: ({ page, query, action, targetType }) => [
+    "drive",
+    "activity",
+    page,
+    query,
+    action,
+    targetType,
+  ],
   driveRoot: (page, folderPage) => ["drive", "root", page, folderPage],
   driveCategory: (categoryId, page) => [
     "drive",
@@ -24,9 +32,11 @@ export const queryKeys = {
   ],
   search: (query, page) => ["search", query, page],
   folderShares: (folderId) => ["shares", folderId],
-  publicShare: (token, folderId = null) => [
+  publicShare: (token, folderId = null, page = 1, folderPage = 1) => [
     "public-share",
     token,
     folderId,
+    page,
+    folderPage,
   ],
 };
