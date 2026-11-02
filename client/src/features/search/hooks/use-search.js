@@ -8,7 +8,7 @@ const useSearch = ({ query, page = 1 }) =>
     queryKey: queryKeys.search(query, page),
     queryFn: () => searchDrive({ query, page }),
     enabled: Boolean(query),
-    placeholderData: keepPreviousData,
+    placeholderData: query ? keepPreviousData : undefined,
   });
 
 export default useSearch;

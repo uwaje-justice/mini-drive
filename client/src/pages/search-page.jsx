@@ -19,6 +19,7 @@ const SearchPage = () => {
   const page = readPageParam(searchParams.get("page"));
   const results = useSearch({ query, page });
   const total = results.data?.pagination.total;
+  const hasResults = Boolean(query) && results.data?.results.length > 0;
 
   const search = (value) => {
     const next = new URLSearchParams();
@@ -113,7 +114,7 @@ const SearchPage = () => {
           />
         ) : null}
 
-        {results.data?.results.length > 0 ? (
+        {hasResults ? (
           <>
             <SearchResultList results={results.data.results} />
             <PaginationControls
