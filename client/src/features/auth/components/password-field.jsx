@@ -14,7 +14,7 @@ const PasswordField = ({ label = "Password", ...props }) => {
       endAdornment={
         <button
           type="button"
-          className="grid size-9 place-items-center rounded-full text-on-surface-variant transition hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          className="grid size-9 cursor-pointer place-items-center rounded-full text-on-surface-variant transition hover:bg-surface-container-low hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           onClick={() => setIsVisible((current) => !current)}
           aria-label={isVisible ? "Hide password" : "Show password"}
         >

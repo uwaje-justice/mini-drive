@@ -11,9 +11,9 @@ const DrivePanel = ({
   const titleId = useId();
 
   return (
-    <section className="overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-1">
+    <section className="min-w-0 overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-1">
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-outline-variant px-4 py-4 sm:px-5">
-        <div>
+        <div className="min-w-0">
           {kicker ? (
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-secondary">
               {kicker}
@@ -21,7 +21,7 @@ const DrivePanel = ({
           ) : null}
           <h2
             id={titleId}
-            className="mt-1 text-xl font-semibold tracking-tight text-on-surface"
+            className="mt-1 text-xl font-semibold tracking-tight text-on-surface [overflow-wrap:anywhere]"
           >
             {title}
           </h2>

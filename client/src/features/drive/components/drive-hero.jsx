@@ -1,4 +1,4 @@
-import { FiArrowUpRight, FiFolder } from "react-icons/fi";
+import { FiFolder } from "react-icons/fi";
 
 import { formatCount } from "@/features/drive/format.js";
 
@@ -42,10 +42,6 @@ const DriveHero = ({ fileCount, folderCount, categoryCount }) => {
         <p className="text-xs uppercase tracking-[0.12em] text-white/60">
           Stored in one place
         </p>
-        <FiArrowUpRight
-          className="size-5 text-white/60"
-          aria-hidden="true"
-        />
       </div>
     </section>
   );

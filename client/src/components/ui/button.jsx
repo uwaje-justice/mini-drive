@@ -28,7 +28,7 @@ const Button = ({
 }) => (
   <button
     type="button"
-    className={`inline-flex items-center justify-center gap-2 rounded-control border font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
+    className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-control border font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
     disabled={disabled || isLoading}
     aria-busy={isLoading}
     {...props}
