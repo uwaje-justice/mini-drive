@@ -61,6 +61,7 @@ const SearchPage = () => {
         <SearchForm
           initialValue={query}
           onSearch={search}
+          onClear={() => search("")}
           autoFocus={!query}
         />
       </header>

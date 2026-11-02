@@ -6,6 +6,7 @@ import Button from "@/components/ui/button.jsx";
 const SearchForm = ({
   initialValue = "",
   onSearch,
+  onClear,
   autoFocus = false,
   compact = false,
 }) => {
@@ -15,6 +16,13 @@ const SearchForm = ({
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
+
+  const change = (event) => {
+    const next = event.target.value;
+
+    setValue(next);
+    if (!next.trim() && value.trim()) onClear?.();
+  };
 
   const submit = (event) => {
     event.preventDefault();
@@ -37,7 +45,7 @@ const SearchForm = ({
           value={value}
           autoFocus={autoFocus}
           maxLength={100}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={change}
           placeholder="Search your drive"
           className="min-h-10 w-full rounded-control border border-outline-variant bg-surface pl-9 pr-3 text-sm text-on-surface shadow-sm outline-none transition placeholder:text-on-surface-variant/60 focus:border-primary focus:ring-4 focus:ring-primary/10"
         />
