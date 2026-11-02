@@ -117,8 +117,8 @@ file-uploader/
 ├── eslint.config.js
 ├── package.json
 ├── package-lock.json
+├── netlify.toml
 ├── render.yaml
-├── vercel.json
 ├── README.md
 ├── .gitignore
 ├── instructions.md
@@ -231,19 +231,21 @@ Client:
 - Cloudinary previews and downloads are proxied through Express; the browser
   never receives a direct Cloudinary URL.
 - Development uses the Vite proxy (`/api` to `http://localhost:3000`), so no
-  CORS request is needed. Production uses separate Render and Vercel origins.
+  CORS request is needed. Production uses separate Render and Netlify origins.
 - Production CORS allows only exact origins from `CLIENT_ORIGINS`, sends
   credentials, and allows `x-csrf-token`. A missing list fails startup.
 - Production cookies use `SameSite=None` and `Secure` for the separate client
   origin. Some Safari and iOS browsers may block them.
-- Express does not serve `client/dist`. The client is deployed to Vercel.
+- Express does not serve `client/dist`. The client is deployed to Netlify.
 - Prisma uses PostgreSQL for development, tests, and production. Development
   uses `DATABASE_URL`; tests reset `TEST_DATABASE_URL`, whose database name must
   end in `_test`.
 - `DIRECT_URL` is optional and is used for migrations and the Prisma CLI. It
   falls back to `DATABASE_URL`.
-- `render.yaml` deploys the API, and `vercel.json` builds the client and
-  rewrites deep links to `index.html`.
+- `render.yaml` deploys the API. `netlify.toml` builds the client, publishes
+  `client/dist`, and rewrites deep links to `index.html`.
+- Netlify must use the repository root as its base directory. Setting the base
+  to `client` breaks the root `netlify.toml` paths.
 - Render runs migrations in `startCommand` because the free plan does not
   support `preDeployCommand`. Use Cloudinary storage on Render because its
   filesystem is temporary.

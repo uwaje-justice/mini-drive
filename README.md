@@ -60,8 +60,8 @@ file-uploader/
 │   │   └── styles/             Tailwind theme tokens
 │   ├── .env.example
 │   └── vite.config.js
+├── netlify.toml                Netlify build and SPA routing
 ├── render.yaml                 Render web service blueprint
-├── vercel.json                 Vercel build and SPA routing
 └── package.json                Workspace scripts
 ```
 
@@ -242,9 +242,9 @@ npm test
 Before the test run, `npm test` runs `prisma migrate reset --force --skip-seed`
 against `TEST_DATABASE_URL`.
 
-## Deploying to Render and Vercel
+## Deploying to Render and Netlify
 
-The API runs on Render. The client runs on Vercel. They use separate origins,
+The API runs on Render. The client runs on Netlify. They use separate origins,
 so the API enables CORS with credentials and sends cross-site session cookies.
 
 ### 1. Create the database
@@ -283,51 +283,53 @@ STORAGE_DRIVER=cloudinary
 DATABASE_URL=...
 DIRECT_URL=...
 SESSION_SECRET=...
-CLIENT_ORIGINS=https://your-client.vercel.app
+CLIENT_ORIGINS=https://your-client.netlify.app
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 ```
 
-### 3. Deploy the client on Vercel
+### 3. Deploy the client on Netlify
 
-Import the repository into Vercel. `vercel.json` builds the client, publishes
-`client/dist`, and rewrites unknown paths to `index.html` so React Router deep
-links work.
+Import the repository into Netlify. Leave the base directory at the repository
+root. `netlify.toml` runs `npm run build`, publishes `client/dist`, and rewrites
+unknown paths to `index.html` so React Router deep links work.
 
-Set:
+Set the API URL in **Site configuration → Environment variables**:
 
 ```text
 VITE_API_URL=https://your-render-service.onrender.com
 ```
 
-Vite reads this value at build time. Redeploy after changing it.
+Vite reads this value at build time. Trigger a new deploy after changing it.
+
+Do not set the base directory to `client`. That would make Netlify look for the
+configuration and build output in the wrong place.
 
 ### 4. Connect the two origins
 
-Add the exact Vercel production origin to `CLIENT_ORIGINS` on Render, then
+Add the exact Netlify production origin to `CLIENT_ORIGINS` on Render, then
 redeploy the API.
 
 Example:
 
 ```text
-CLIENT_ORIGINS=https://mini-drive.vercel.app
+CLIENT_ORIGINS=https://mini-drive.netlify.app
 ```
 
-If you use Vercel preview deployments, add each preview origin explicitly. Do
-not use a wildcard origin with credentials.
+If you use Netlify deploy previews, add each preview origin explicitly. Do not
+use a wildcard origin with credentials.
 
 ### Cross-site cookies
 
-Production cookies use `SameSite=None` and `Secure` so the Vercel client can
+Production cookies use `SameSite=None` and `Secure` so the Netlify client can
 send them to the Render API.
 
 Some browsers, especially Safari and iOS browsers, may block third-party
 cookies. If sign-in does not persist on a phone, use one of these alternatives:
 
 - serve the client from the same Express service as the API,
-- use `app.example.com` and `api.example.com` under one custom domain,
-- proxy `/api` through Vercel to Render.
+- use `app.example.com` and `api.example.com` under one custom domain.
 
 ## Troubleshooting
 
@@ -338,17 +340,17 @@ Set `TEST_DATABASE_URL` in `api/.env` and make sure the database name ends in
 
 ### `CLIENT_ORIGINS is required in production`
 
-Set `CLIENT_ORIGINS` on Render to the exact Vercel origin. Include the scheme
+Set `CLIENT_ORIGINS` on Render to the exact Netlify origin. Include the scheme
 and do not add a trailing slash.
 
-### Login works locally but not from Vercel
+### Login works locally but not from Netlify
 
 Check all of these:
 
 1. `VITE_API_URL` points at the Render API.
-2. `CLIENT_ORIGINS` contains the exact Vercel origin.
+2. `CLIENT_ORIGINS` contains the exact Netlify origin.
 3. The API uses HTTPS so the secure cookie can be stored.
-4. The browser allows third-party cookies for the Vercel site.
+4. The browser allows third-party cookies for the Netlify site.
 5. The Render service restarted after changing environment variables.
 
 ### Migrations fail on Render

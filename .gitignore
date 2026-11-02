@@ -7,3 +7,4 @@ agent-notes.md
 *.db-journal
 api/src/generated/
 client/dist/
+.netlify/
