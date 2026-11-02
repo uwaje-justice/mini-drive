@@ -1,31 +1,55 @@
 import { motion } from "motion/react";
+import { useState } from "react";
 import {
   FiAlertTriangle,
   FiArrowLeft,
+  FiEdit2,
   FiFolder,
+  FiFolderPlus,
+  FiMove,
+  FiShare2,
+  FiTrash2,
+  FiUploadCloud,
 } from "react-icons/fi";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 import Button from "@/components/ui/button.jsx";
+import ConfirmDialog from "@/components/ui/confirm-dialog.jsx";
+import FormAlert from "@/components/ui/form-alert.jsx";
 import DriveLoading from "@/features/drive/components/drive-loading.jsx";
 import DriveState from "@/features/drive/components/drive-state.jsx";
 import FileList from "@/features/drive/components/file-list.jsx";
 import FolderBreadcrumbs from "@/features/drive/components/folder-breadcrumbs.jsx";
 import FolderList from "@/features/drive/components/folder-list.jsx";
+import MoveFolderDialog from "@/features/drive/components/move-folder-dialog.jsx";
+import NewFolderDialog from "@/features/drive/components/new-folder-dialog.jsx";
 import PaginationControls from "@/features/drive/components/pagination-controls.jsx";
+import RenameFolderDialog from "@/features/drive/components/rename-folder-dialog.jsx";
+import UploadDialog from "@/features/drive/components/upload-dialog.jsx";
 import { formatCount } from "@/features/drive/format.js";
+import useDeleteFolder from "@/features/drive/hooks/use-delete-folder.js";
 import useFolder from "@/features/drive/hooks/use-folder.js";
 import { readPageParam } from "@/features/drive/params.js";
+import ShareDialog from "@/features/shares/components/share-dialog.jsx";
 
 const backLinkClass =
   "inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-sm font-medium text-on-surface-variant transition hover:bg-surface-container-low hover:text-on-surface";
 
 const FolderPage = () => {
   const { folderId } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = readPageParam(searchParams.get("page"));
   const folderPage = readPageParam(searchParams.get("folderPage"));
   const folderQuery = useFolder({ folderId, page, folderPage });
+  const deleteFolder = useDeleteFolder();
+  const [dialog, setDialog] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
   const folder = folderQuery.isError ? undefined : folderQuery.data?.folder;
   const breadcrumbs = folder ? folderQuery.data.breadcrumbs : [];
 
@@ -41,39 +65,89 @@ const FolderPage = () => {
     );
   };
 
+  const confirmDelete = async () => {
+    setDeleteError("");
+
+    try {
+      await deleteFolder.mutateAsync(folder.id);
+      navigate(
+        folder.parentId ? `/drive/folders/${folder.parentId}` : "/drive/folders",
+        { replace: true },
+      );
+    } catch (error) {
+      setDeleteError(error.message);
+    }
+  };
+
   return (
     <motion.div
-      className="mx-auto grid w-full max-w-6xl gap-5"
+      className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-5"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
     >
-      <div className="grid gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
         <Link to="/drive" className={backLinkClass}>
           <FiArrowLeft className="size-4" aria-hidden="true" />
           My drive
         </Link>
 
         {folder ? (
-          <div className="flex items-start gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-warning-container text-on-warning-container shadow-sm">
-              <FiFolder className="size-6" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-secondary">
-                Folder
-              </p>
-              <h1 className="truncate text-2xl font-semibold tracking-[-0.04em] text-on-surface sm:text-3xl">
-                {folder.name}
-              </h1>
-              <p className="mt-1 text-sm text-on-surface-variant">
-                {formatCount(folderQuery.data.filePagination.total, "file")} and{" "}
-                {formatCount(
-                  folderQuery.data.folderPagination.total,
-                  "folder",
-                )}{" "}
-                in this folder.
-              </p>
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-start gap-4">
+              <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-warning-container text-on-warning-container shadow-sm">
+                <FiFolder className="size-6" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-secondary">
+                  Folder
+                </p>
+                <h1 className="truncate text-2xl font-semibold tracking-[-0.04em] text-on-surface sm:text-3xl">
+                  {folder.name}
+                </h1>
+                <p className="mt-1 text-sm text-on-surface-variant">
+                  {formatCount(folderQuery.data.filePagination.total, "file")}{" "}
+                  and{" "}
+                  {formatCount(
+                    folderQuery.data.folderPagination.total,
+                    "folder",
+                  )}{" "}
+                  in this folder.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setDialog("rename")}
+              >
+                <FiEdit2 className="size-4" aria-hidden="true" />
+                Rename
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setDialog("move")}
+              >
+                <FiMove className="size-4" aria-hidden="true" />
+                Move
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setDialog("share")}
+              >
+                <FiShare2 className="size-4" aria-hidden="true" />
+                Share
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setDeleteError("");
+                  setDialog("delete");
+                }}
+              >
+                <FiTrash2 className="size-4" aria-hidden="true" />
+                Delete
+              </Button>
             </div>
           </div>
         ) : null}
@@ -82,19 +156,37 @@ const FolderPage = () => {
       </div>
 
       <section className="overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-1">
-        <header className="border-b border-outline-variant px-4 py-4 sm:px-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-secondary">
-            Contents
-          </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-on-surface">
-            {folder
-              ? formatCount(
-                  folderQuery.data.filePagination.total +
-                    folderQuery.data.folderPagination.total,
-                  "item",
-                )
-              : "Folder contents"}
-          </h2>
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-outline-variant px-4 py-4 sm:px-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-secondary">
+              Contents
+            </p>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight text-on-surface">
+              {folder
+                ? formatCount(
+                    folderQuery.data.filePagination.total +
+                      folderQuery.data.folderPagination.total,
+                    "item",
+                  )
+                : "Folder contents"}
+            </h2>
+          </div>
+          {folder ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDialog("folder")}
+              >
+                <FiFolderPlus className="size-4" aria-hidden="true" />
+                New folder
+              </Button>
+              <Button size="sm" onClick={() => setDialog("upload")}>
+                <FiUploadCloud className="size-4" aria-hidden="true" />
+                Upload
+              </Button>
+            </div>
+          ) : null}
         </header>
 
         <div
@@ -211,6 +303,49 @@ const FolderPage = () => {
 
         </div>
       </section>
+
+      <NewFolderDialog
+        open={dialog === "folder"}
+        parentId={folderId}
+        parentName={folder?.name}
+        onClose={() => setDialog(null)}
+      />
+      <UploadDialog
+        open={dialog === "upload"}
+        folderId={folderId}
+        folderName={folder?.name}
+        onClose={() => setDialog(null)}
+      />
+      <RenameFolderDialog
+        open={dialog === "rename"}
+        folder={folder}
+        onClose={() => setDialog(null)}
+      />
+      <MoveFolderDialog
+        open={dialog === "move"}
+        folder={folder}
+        onClose={() => setDialog(null)}
+      />
+      <ShareDialog
+        open={dialog === "share"}
+        folder={folder}
+        onClose={() => setDialog(null)}
+      />
+      <ConfirmDialog
+        open={dialog === "delete"}
+        title="Delete folder?"
+        description={
+          folder
+            ? `${folder.name} and everything inside it will be deleted. This cannot be undone.`
+            : "This folder and everything inside it will be deleted. This cannot be undone."
+        }
+        confirmLabel="Delete folder"
+        isPending={deleteFolder.isPending}
+        onConfirm={confirmDelete}
+        onClose={() => setDialog(null)}
+      >
+        {deleteError ? <FormAlert>{deleteError}</FormAlert> : null}
+      </ConfirmDialog>
     </motion.div>
   );
 };

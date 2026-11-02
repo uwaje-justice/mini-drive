@@ -1,19 +1,28 @@
 import { motion } from "motion/react";
+import { useState } from "react";
 import {
   FiAlertTriangle,
   FiArrowLeft,
   FiDownload,
-  FiEyeOff,
+  FiEdit2,
+  FiMove,
+  FiTrash2,
 } from "react-icons/fi";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { fileDownloadUrl, filePreviewUrl } from "@/api/files.js";
 import Button from "@/components/ui/button.jsx";
+import ConfirmDialog from "@/components/ui/confirm-dialog.jsx";
+import FormAlert from "@/components/ui/form-alert.jsx";
 import DriveLoading from "@/features/drive/components/drive-loading.jsx";
 import DrivePanel from "@/features/drive/components/drive-panel.jsx";
 import DriveState from "@/features/drive/components/drive-state.jsx";
+import FilePreview from "@/features/drive/components/file-preview.jsx";
+import MoveFileDialog from "@/features/drive/components/move-file-dialog.jsx";
+import RenameFileDialog from "@/features/drive/components/rename-file-dialog.jsx";
 import getFileMeta from "@/features/drive/file-meta.js";
 import { formatDate, formatFileSize } from "@/features/drive/format.js";
+import useDeleteFile from "@/features/drive/hooks/use-delete-file.js";
 import useFile from "@/features/drive/hooks/use-file.js";
 
 const backLinkClass =
@@ -26,47 +35,13 @@ const metadataClass = "grid gap-1 border-t border-outline-variant py-3";
 const labelClass = "text-xs font-medium text-on-surface-variant";
 const valueClass = "text-sm font-medium text-on-surface";
 
-const FilePreview = ({ file }) => {
-  if (file.previewKind === "image") {
-    return (
-      <div className="grid place-items-center bg-surface-container-low p-4">
-        <img
-          src={filePreviewUrl(file.id)}
-          alt={file.name}
-          className="max-h-[70vh] w-auto max-w-full rounded-lg object-contain shadow-sm"
-        />
-      </div>
-    );
-  }
-
-  if (file.previewKind === "pdf" || file.previewKind === "text") {
-    return (
-      <iframe
-        src={filePreviewUrl(file.id)}
-        title={`Preview of ${file.name}`}
-        className="h-[32rem] w-full bg-surface-container-low"
-      />
-    );
-  }
-
-  return (
-    <DriveState
-      icon={<FiEyeOff className="size-5" />}
-      title="No preview for this file."
-      description="Download the file to open it."
-      action={
-        <a href={fileDownloadUrl(file.id)} className={downloadLinkClass} download>
-          <FiDownload className="size-4" aria-hidden="true" />
-          Download file
-        </a>
-      }
-    />
-  );
-};
-
 const FilePage = () => {
   const { fileId } = useParams();
+  const navigate = useNavigate();
   const fileQuery = useFile(fileId);
+  const deleteFile = useDeleteFile();
+  const [dialog, setDialog] = useState(null);
+  const [deleteError, setDeleteError] = useState("");
   const file = fileQuery.isError ? undefined : fileQuery.data?.file;
   const meta = getFileMeta(file?.previewKind);
   const Icon = meta.icon;
@@ -75,22 +50,36 @@ const FilePage = () => {
     : "/drive/files";
   const backLabel = file?.folder ? file.folder.name : "Files";
 
+  const confirmDelete = async () => {
+    setDeleteError("");
+
+    try {
+      await deleteFile.mutateAsync(file.id);
+      navigate(
+        file.folder ? `/drive/folders/${file.folder.id}` : "/drive/files",
+        { replace: true },
+      );
+    } catch (error) {
+      setDeleteError(error.message);
+    }
+  };
+
   return (
     <motion.div
-      className="mx-auto grid w-full max-w-6xl gap-6"
+      className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
     >
-      <div className="grid gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
         <Link to={backTo} className={backLinkClass}>
           <FiArrowLeft className="size-4" aria-hidden="true" />
           {backLabel}
         </Link>
 
         {file ? (
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex min-w-0 items-start gap-4">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-start gap-4">
               <span
                 className={`grid size-12 shrink-0 place-items-center rounded-xl ${meta.tone} shadow-sm`}
               >
@@ -109,14 +98,40 @@ const FilePage = () => {
                 </p>
               </div>
             </div>
-            <a
-              href={fileDownloadUrl(file.id)}
-              className={downloadLinkClass}
-              download
-            >
-              <FiDownload className="size-4" aria-hidden="true" />
-              Download
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setDialog("rename")}
+              >
+                <FiEdit2 className="size-4" aria-hidden="true" />
+                Rename
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setDialog("move")}
+              >
+                <FiMove className="size-4" aria-hidden="true" />
+                Move
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setDeleteError("");
+                  setDialog("delete");
+                }}
+              >
+                <FiTrash2 className="size-4" aria-hidden="true" />
+                Delete
+              </Button>
+              <a
+                href={fileDownloadUrl(file.id)}
+                className={downloadLinkClass}
+                download
+              >
+                <FiDownload className="size-4" aria-hidden="true" />
+                Download
+              </a>
+            </div>
           </div>
         ) : null}
       </div>
@@ -165,9 +180,13 @@ const FilePage = () => {
       ) : null}
 
       {file ? (
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
           <DrivePanel kicker="Preview" title={file.name}>
-            <FilePreview file={file} />
+            <FilePreview
+              file={file}
+              previewUrl={filePreviewUrl(file.id)}
+              downloadUrl={fileDownloadUrl(file.id)}
+            />
           </DrivePanel>
 
           <DrivePanel
@@ -207,6 +226,32 @@ const FilePage = () => {
           </DrivePanel>
         </div>
       ) : null}
+
+      <RenameFileDialog
+        open={dialog === "rename"}
+        file={file}
+        onClose={() => setDialog(null)}
+      />
+      <MoveFileDialog
+        open={dialog === "move"}
+        file={file}
+        onClose={() => setDialog(null)}
+      />
+      <ConfirmDialog
+        open={dialog === "delete"}
+        title="Delete file?"
+        description={
+          file
+            ? `${file.name} will be removed from your drive. This cannot be undone.`
+            : "This file will be removed. This cannot be undone."
+        }
+        confirmLabel="Delete file"
+        isPending={deleteFile.isPending}
+        onConfirm={confirmDelete}
+        onClose={() => setDialog(null)}
+      >
+        {deleteError ? <FormAlert>{deleteError}</FormAlert> : null}
+      </ConfirmDialog>
     </motion.div>
   );
 };

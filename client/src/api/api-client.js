@@ -74,6 +74,75 @@ const request = async (path, options = {}) => {
   return payload?.data ?? null;
 };
 
+const parseUploadPayload = (xhr) => {
+  const contentType = xhr.getResponseHeader("content-type") ?? "";
+
+  if (!contentType.includes("application/json")) return null;
+
+  return JSON.parse(xhr.responseText);
+};
+
+const sendUpload = (path, { body, onProgress }) =>
+  new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open("POST", path);
+    xhr.withCredentials = true;
+
+    if (csrfToken) xhr.setRequestHeader("x-csrf-token", csrfToken);
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded / event.total);
+    });
+
+    xhr.addEventListener("load", () => {
+      try {
+        resolve({
+          status: xhr.status,
+          payload: parseUploadPayload(xhr),
+        });
+      } catch {
+        reject(
+          new ApiError({
+            code: "INVALID_RESPONSE",
+            message: "The upload response could not be read.",
+            status: xhr.status,
+          }),
+        );
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(
+        new ApiError({
+          code: "REQUEST_FAILED",
+          message: "Could not upload files. Check your connection.",
+          status: 0,
+        }),
+      );
+    });
+
+    xhr.send(body);
+  });
+
+export const requestUpload = async (path, { body, onProgress } = {}) => {
+  let response = await sendUpload(path, { body, onProgress });
+
+  if (
+    response.status === 403 &&
+    response.payload?.error?.code === "CSRF_INVALID"
+  ) {
+    await getSession();
+    response = await sendUpload(path, { body, onProgress });
+  }
+
+  if (response.status < 200 || response.status >= 300) {
+    throw toApiError(response.payload, response.status);
+  }
+
+  return response.payload?.data ?? null;
+};
+
 export const getSession = async () => {
   const data = await request("/api/auth/session");
   setCsrfToken(data?.csrfToken ?? null);

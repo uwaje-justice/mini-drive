@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
-import { FiAlertTriangle, FiFolder } from "react-icons/fi";
+import { useState } from "react";
+import { FiAlertTriangle, FiFolder, FiFolderPlus } from "react-icons/fi";
 import { useSearchParams } from "react-router-dom";
 
 import Button from "@/components/ui/button.jsx";
@@ -7,6 +8,7 @@ import DriveLoading from "@/features/drive/components/drive-loading.jsx";
 import DrivePanel from "@/features/drive/components/drive-panel.jsx";
 import DriveState from "@/features/drive/components/drive-state.jsx";
 import FolderList from "@/features/drive/components/folder-list.jsx";
+import NewFolderDialog from "@/features/drive/components/new-folder-dialog.jsx";
 import PaginationControls from "@/features/drive/components/pagination-controls.jsx";
 import { formatCount } from "@/features/drive/format.js";
 import useDriveRoot from "@/features/drive/hooks/use-drive-root.js";
@@ -16,6 +18,7 @@ const FoldersPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const folderPage = readPageParam(searchParams.get("folderPage"));
   const root = useDriveRoot({ folderPage });
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const total = root.data?.folderPagination.total;
 
   const changePage = (nextPage) => {
@@ -37,16 +40,22 @@ const FoldersPage = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: "easeOut" }}
     >
-      <header>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-          My drive
-        </p>
-        <h1 className="text-3xl font-semibold tracking-[-0.04em] text-on-surface sm:text-4xl">
-          Folders
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
-          Folders at the top level. Open one to see what it holds.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+            My drive
+          </p>
+          <h1 className="text-3xl font-semibold tracking-[-0.04em] text-on-surface sm:text-4xl">
+            Folders
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
+            Folders at the top level. Open one to see what it holds.
+          </p>
+        </div>
+        <Button onClick={() => setIsCreatingFolder(true)}>
+          <FiFolderPlus className="size-4" aria-hidden="true" />
+          New folder
+        </Button>
       </header>
 
       <DrivePanel
@@ -92,6 +101,11 @@ const FoldersPage = () => {
           </>
         ) : null}
       </DrivePanel>
+
+      <NewFolderDialog
+        open={isCreatingFolder}
+        onClose={() => setIsCreatingFolder(false)}
+      />
     </motion.div>
   );
 };
