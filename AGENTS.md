@@ -6,8 +6,8 @@ expiring share links. The React client is the only browser UI.
 
 ## Stack
 
-- Node.js with Express 5, ES modules
-- Prisma 7 with SQLite for development (`@prisma/adapter-better-sqlite3`, `dev.db`)
+- Node.js 22+ with Express 5, ES modules
+- Prisma 7 with PostgreSQL (`@prisma/adapter-pg`)
 - Passport.js with session-based auth
 - Multer for uploads
 - express-validator for input validation
@@ -51,6 +51,7 @@ file-uploader/
 ├── client/
 │   ├── index.html
 │   ├── jsconfig.json
+│   ├── .env.example
 │   ├── package.json
 │   ├── vite.config.js
 │   └── src/
@@ -59,6 +60,7 @@ file-uploader/
 │       │   └── router.jsx
 │       ├── main.jsx
 │       ├── api/
+│       │   ├── api-base.js
 │       │   ├── api-client.js
 │       │   ├── auth.js
 │       │   ├── drive.js
@@ -115,6 +117,9 @@ file-uploader/
 ├── eslint.config.js
 ├── package.json
 ├── package-lock.json
+├── render.yaml
+├── vercel.json
+├── README.md
 ├── .gitignore
 ├── instructions.md
 └── AGENTS.md
@@ -129,15 +134,15 @@ API:
 - `api/src/routes/` wires URLs only. Route files end in `-routes.js`; `index-routes.js` combines them. `api/src/controllers/` calls services and sends JSON or binary responses.
 - `api/src/serializers.js` defines every response shape. Never return Prisma rows directly.
 - `api/src/responses.js` holds the JSON success helper.
-- `api/src/middleware/` holds app-wide CSRF, upload, 404, and error handling, plus API auth, validation, and headers. All failures go through the error handler; middleware never writes error JSON.
+- `api/src/middleware/` holds app-wide CORS, CSRF, upload, 404, and error handling, plus API auth, validation, and headers. All failures go through the error handler; middleware never writes error JSON.
 - `api/src/services/` holds database access and business rules. No Express code here.
 - `api/src/validators/` holds express-validator chains, one file per feature.
 - `api/src/errors/` holds custom errors with status codes, thrown by services and middleware.
-- `api/src/lib/` holds shared helpers: env, Prisma client, storage adapters, file signatures, pagination, previews, download headers, and streaming.
+- `api/src/lib/` holds shared helpers: env, database URL selection, Prisma client, storage adapters, file signatures, pagination, previews, download headers, and streaming.
 - `api/src/generated/prisma/` holds the generated Prisma Client. Never edit it by hand. Gitignored.
 - `api/prisma/` holds the schema and migrations.
 - `api/uploads/` holds local files when `STORAGE_DRIVER` is `local`. Gitignored.
-- `api/tests/` holds API, storage, library, and server tests. Tests use `test.db`, never `dev.db`.
+- `api/tests/` holds API, storage, library, and server tests. Tests reset `TEST_DATABASE_URL`, never the development database.
 
 Client:
 
@@ -146,7 +151,7 @@ Client:
 - `client/src/pages/` holds one thin component per screen. Pages compose feature components; they do not call `fetch`.
 - `client/src/features/` holds domain components and hooks. The `drive` feature owns dashboard, category, folder, file-detail, upload, preview, activity, and action data. The `search` feature owns whole-drive search. The `shares` feature owns owner share links, public share browsing, and public file previews.
 - `client/src/components/` holds shared layout, routing guards, and UI primitives. The landing and About pages share `layout/landing-header.jsx` and `layout/landing-footer.jsx`.
-- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js`, `api/drive.js`, `api/files.js`, `api/folders.js`, `api/search.js`, and `api/shares.js` wrap it.
+- `client/src/api/api-base.js` builds absolute API URLs from `VITE_API_URL`. `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js`, `api/drive.js`, `api/files.js`, `api/folders.js`, `api/search.js`, and `api/shares.js` wrap it.
 - `client/src/lib/query-keys.js` owns every TanStack Query key. `query-client.js` configures the client.
 - `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind and defines MD3 tokens in `@theme static`. All other styling uses Tailwind utilities.
 - Use MD3 token names directly: `primary`, `on-primary`, `primary-container`, `surface`, `on-surface`, `on-surface-variant`, `outline-variant`, `error`, `success`, and `warning`. Do not add alias token names.
@@ -166,11 +171,14 @@ Client:
 - Never expose storage keys, storage URLs, name keys, password hashes, or owner IDs.
 - Client data comes from TanStack Query hooks, never page-level `fetch`.
 - Auth state comes from the session query and cookie. Never store it in `localStorage`.
+- Production CORS uses exact origins from `CLIENT_ORIGINS`. Never use a wildcard origin with credentials.
+- The client sends API requests to `VITE_API_URL`. Do not add a second proxy or HTTP layer without approval.
 - Run all npm commands from the repository root. Use `-w` for one workspace.
 
 ## API contract
 
 - Every route is under `/api`.
+- `GET /api/health` returns `{ data: { status: "ok" } }` for Render health checks.
 - Success: `{ data }`. Failure: `{ error: { code, message, fields? } }`.
 - Auth uses the session cookie. Every mutation sends the CSRF token in `x-csrf-token`.
 - `GET /api/auth/session` returns the signed-in user or `null`, plus a CSRF token.
@@ -203,11 +211,12 @@ Client:
 - `npm run dev:client` starts the Vite dev server.
 - `npm start` starts the API server.
 - `npm run build` builds the client into `client/dist`.
-- `npm test` runs the Vitest suite against `api/test.db`.
+- `npm test` resets and runs the Vitest suite against `TEST_DATABASE_URL`.
 - `npm run test:watch` runs Vitest in watch mode.
 - `npm run lint` checks the API and client.
 - `npm run lint:fix` fixes lint issues and sorts imports.
 - `npm run prisma:migrate` creates a migration and regenerates the client.
+- `npm run prisma:migrate:deploy` applies existing migrations with `DIRECT_URL` or `DATABASE_URL`.
 - `npm run prisma:generate` regenerates the Prisma client.
 - `npm run prisma:studio` opens Prisma Studio.
 
@@ -221,9 +230,23 @@ Client:
   files can coexist.
 - Cloudinary previews and downloads are proxied through Express; the browser
   never receives a direct Cloudinary URL.
-- The API and client share an origin in development through the Vite proxy
-  (`/api` to `http://localhost:3000`). CORS is not enabled.
-- Express does not serve `client/dist` yet. Production client serving is a later step.
+- Development uses the Vite proxy (`/api` to `http://localhost:3000`), so no
+  CORS request is needed. Production uses separate Render and Vercel origins.
+- Production CORS allows only exact origins from `CLIENT_ORIGINS`, sends
+  credentials, and allows `x-csrf-token`. A missing list fails startup.
+- Production cookies use `SameSite=None` and `Secure` for the separate client
+  origin. Some Safari and iOS browsers may block them.
+- Express does not serve `client/dist`. The client is deployed to Vercel.
+- Prisma uses PostgreSQL for development, tests, and production. Development
+  uses `DATABASE_URL`; tests reset `TEST_DATABASE_URL`, whose database name must
+  end in `_test`.
+- `DIRECT_URL` is optional and is used for migrations and the Prisma CLI. It
+  falls back to `DATABASE_URL`.
+- `render.yaml` deploys the API, and `vercel.json` builds the client and
+  rewrites deep links to `index.html`.
+- Render runs migrations in `startCommand` because the free plan does not
+  support `preDeployCommand`. Use Cloudinary storage on Render because its
+  filesystem is temporary.
 - Folder and file listings show 20 items per page. The API uses `page` for files
   and `folderPage` for folders.
 - Smart categories are read-only, whole-drive views. Photos match `image/*`,
@@ -258,7 +281,8 @@ Client:
 - Public share links use random UUID tokens, expire after 1-365 days, and can be
   revoked. Expired, revoked, and unknown links all return the same 404.
 - Mobile headers use an avatar profile menu with the signed-in email and sign
-  out. The desktop sidebar keeps its account panel.
+  out. The desktop sidebar keeps its account panel. The mobile bottom bar has
+  five items: Home, Files, Folders, Activity, and Settings.
 - Share links may point at nested folders and include descendants, but never
   root files.
 - Previews are inline and limited to images, PDF, and plain text. PDF pages
