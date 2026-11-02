@@ -43,6 +43,14 @@ const router = createBrowserRouter([
         ],
       },
       {
+        path: "share/:token",
+        lazy: lazyPage(() => import("@/pages/public-share-page.jsx")),
+      },
+      {
+        path: "share/:token/folders/:folderId",
+        lazy: lazyPage(() => import("@/pages/public-share-page.jsx")),
+      },
+      {
         element: <ProtectedRoute />,
         children: [
           {
@@ -52,6 +60,10 @@ const router = createBrowserRouter([
               {
                 index: true,
                 lazy: lazyPage(() => import("@/pages/drive-page.jsx")),
+              },
+              {
+                path: "activity",
+                lazy: lazyPage(() => import("@/pages/activity-page.jsx")),
               },
               {
                 path: "files",
@@ -72,6 +84,10 @@ const router = createBrowserRouter([
               {
                 path: "categories/:categoryId",
                 lazy: lazyPage(() => import("@/pages/category-page.jsx")),
+              },
+              {
+                path: "search",
+                lazy: lazyPage(() => import("@/pages/search-page.jsx")),
               },
               {
                 path: "settings",
