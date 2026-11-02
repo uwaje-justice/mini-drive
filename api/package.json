@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "pretest": "DATABASE_URL=file:./test.db prisma migrate deploy",
-    "test": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest run",
-    "test:watch": "NODE_ENV=test DATABASE_URL=file:./test.db SESSION_SECRET=test-secret STORAGE_DRIVER=local vitest",
+    "db:test:reset": "NODE_ENV=test prisma migrate reset --force --skip-seed",
+    "pretest": "npm run db:test:reset",
+    "test": "NODE_ENV=test SESSION_SECRET=test-secret STORAGE_DRIVER=local CLIENT_ORIGINS=http://localhost:5173 vitest run",
+    "test:watch": "NODE_ENV=test SESSION_SECRET=test-secret STORAGE_DRIVER=local CLIENT_ORIGINS=http://localhost:5173 vitest",
     "dev": "nodemon ./src/server.js",
     "start": "node ./src/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prisma:migrate": "prisma migrate dev",
     "postprisma:migrate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio"
   },
@@ -20,12 +22,12 @@
   "license": "ISC",
   "description": "File Uploader REST API.",
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.1",
+    "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@quixo3/prisma-session-store": "^3.1.21",
     "argon2": "^0.45.1",
-    "better-sqlite3": "^13.0.3",
     "cloudinary": "^2.11.0",
+    "cors": "^2.8.6",
     "csrf-sync": "^4.2.1",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
@@ -33,11 +35,12 @@
     "express-validator": "^7.3.2",
     "multer": "^2.5.0",
     "passport": "^0.7.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "pg": "^8.23.1",
+    "prisma": "^7.10.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
-    "prisma": "^7.10.1",
     "supertest": "^7.3.1",
     "vitest": "^5.0.5"
   },

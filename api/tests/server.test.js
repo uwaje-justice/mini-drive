@@ -48,7 +48,6 @@ test("server.js starts the HTTP server", async () => {
     env: {
       ...process.env,
       PORT: String(port),
-      DATABASE_URL: "file:./test.db",
       SESSION_SECRET: "test-secret",
       STORAGE_DRIVER: "local",
       NODE_ENV: "test",

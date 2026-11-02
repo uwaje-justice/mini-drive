@@ -8,8 +8,12 @@ import storage from "../src/lib/storage.js";
 
 export const testPassword = "password123";
 
-if (!process.env.DATABASE_URL?.includes("test.db")) {
-  throw new Error("Tests must run with DATABASE_URL=file:./test.db.");
+const testDatabaseName = process.env.TEST_DATABASE_URL
+  ? new URL(process.env.TEST_DATABASE_URL).pathname.slice(1)
+  : "";
+
+if (!testDatabaseName.endsWith("_test")) {
+  throw new Error("Tests must use a TEST_DATABASE_URL ending in _test.");
 }
 
 export const uniqueEmail = (label) =>
