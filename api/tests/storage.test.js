@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { v2 as cloudinary } from "cloudinary";
-import { onTestFinished,test, vi } from "vitest";
+import { onTestFinished, test, vi } from "vitest";
 
 import storage from "../src/lib/storage.js";
 import localStorage from "../src/lib/storage-local.js";

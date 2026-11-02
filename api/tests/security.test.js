@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { onTestFinished,test } from "vitest";
+import { onTestFinished, test } from "vitest";
 
 import prisma from "../src/lib/prisma.js";
 import {

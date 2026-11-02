@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 
-import { onTestFinished,test } from "vitest";
+import { onTestFinished, test } from "vitest";
 
 import prisma from "../src/lib/prisma.js";
 import {

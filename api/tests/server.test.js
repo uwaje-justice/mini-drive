@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:net";
 
-import { onTestFinished,test } from "vitest";
+import { onTestFinished, test } from "vitest";
 
 const freePort = () =>
   new Promise((resolve, reject) => {

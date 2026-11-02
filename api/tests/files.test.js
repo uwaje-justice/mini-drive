@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { onTestFinished,test } from "vitest";
+import { onTestFinished, test } from "vitest";
 
 import prisma from "../src/lib/prisma.js";
 import {
