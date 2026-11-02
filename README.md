@@ -7,7 +7,6 @@ links. The React client is the only browser UI.
 ## Live deployment
 
 - App: https://mini-drive-0.netlify.app
-- API: https://mini-drive-api-j6ro.onrender.com
 - Source: https://github.com/uwaje-justice/mini-drive
 
 ## Features
