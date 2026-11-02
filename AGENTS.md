@@ -13,7 +13,7 @@ expiring share links. The React client is the only browser UI.
 - express-validator for input validation
 - Local filesystem for development and Cloudinary for remote storage
 - React 19, React Router 7 object routes, TanStack Query, React Hook Form,
-  Tailwind CSS 4, Motion, React Icons, and Vite 8
+  Tailwind CSS 4, Motion, React Icons, PDF.js, and Vite 8
 - Vitest with Supertest for API tests
 - ESLint 10 with `eslint-plugin-simple-import-sort`
 
@@ -62,7 +62,10 @@ file-uploader/
 │       │   ├── api-client.js
 │       │   ├── auth.js
 │       │   ├── drive.js
-│       │   └── files.js
+│       │   ├── files.js
+│       │   ├── folders.js
+│       │   ├── search.js
+│       │   └── shares.js
 │       ├── components/
 │       │   ├── brand-mark.jsx
 │       │   ├── layout/
@@ -74,18 +77,25 @@ file-uploader/
 │       │   │   ├── hooks/
 │       │   │   ├── apply-api-error.js
 │       │   │   └── session-cache.js
-│       │   └── drive/
+│       │   ├── drive/
+│       │   │   ├── components/
+│       │   │   ├── hooks/
+│       │   │   ├── category-meta.js
+│       │   │   ├── file-meta.js
+│       │   │   ├── format.js
+│       │   │   └── params.js
+│       │   ├── search/
+│       │   │   ├── components/
+│       │   │   └── hooks/
+│       │   └── shares/
 │       │       ├── components/
-│       │       ├── hooks/
-│       │       ├── category-meta.js
-│       │       ├── file-meta.js
-│       │       ├── format.js
-│       │       └── params.js
+│       │       └── hooks/
 │       ├── lib/
 │       │   ├── query-client.js
 │       │   └── query-keys.js
 │       ├── pages/
 │       │   ├── about-page.jsx
+│       │   ├── activity-page.jsx
 │       │   ├── category-page.jsx
 │       │   ├── drive-page.jsx
 │       │   ├── file-page.jsx
@@ -95,8 +105,10 @@ file-uploader/
 │       │   ├── landing-page.jsx
 │       │   ├── login-page.jsx
 │       │   ├── not-found-page.jsx
+│       │   ├── public-share-page.jsx
 │       │   ├── register-page.jsx
 │       │   ├── route-error-page.jsx
+│       │   ├── search-page.jsx
 │       │   └── settings-page.jsx
 │       └── styles/
 │           └── globals.css
@@ -132,11 +144,11 @@ Client:
 - `client/src/main.jsx` mounts React, fonts, global CSS, providers, and the router.
 - `client/src/app/router.jsx` owns the object route table and lazy page imports. `providers.jsx` wraps TanStack Query and Motion.
 - `client/src/pages/` holds one thin component per screen. Pages compose feature components; they do not call `fetch`.
-- `client/src/features/` holds domain components and hooks. The `drive` feature owns dashboard, category, folder, and file-detail data. Add `search` and `shares` as each feature is built.
+- `client/src/features/` holds domain components and hooks. The `drive` feature owns dashboard, category, folder, file-detail, upload, preview, activity, and action data. The `search` feature owns whole-drive search. The `shares` feature owns owner share links, public share browsing, and public file previews.
 - `client/src/components/` holds shared layout, routing guards, and UI primitives. The landing and About pages share `layout/landing-header.jsx` and `layout/landing-footer.jsx`.
-- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js`, `api/drive.js`, and `api/files.js` wrap it.
+- `client/src/api/api-client.js` is the only place that calls `fetch` and handles CSRF retries. Resource modules such as `api/auth.js`, `api/drive.js`, `api/files.js`, `api/folders.js`, `api/search.js`, and `api/shares.js` wrap it.
 - `client/src/lib/query-keys.js` owns every TanStack Query key. `query-client.js` configures the client.
-- `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind, defines MD3 tokens in `@theme static`, and holds the base and landing styles.
+- `client/src/styles/globals.css` is the only stylesheet. It imports Tailwind and defines MD3 tokens in `@theme static`. All other styling uses Tailwind utilities.
 - Use MD3 token names directly: `primary`, `on-primary`, `primary-container`, `surface`, `on-surface`, `on-surface-variant`, `outline-variant`, `error`, `success`, and `warning`. Do not add alias token names.
 - Use the `@/` alias for `client/src` instead of deep relative paths.
 - New screens use Tailwind utilities and shared UI components. Do not add page-level CSS files.
@@ -162,11 +174,18 @@ Client:
 - Success: `{ data }`. Failure: `{ error: { code, message, fields? } }`.
 - Auth uses the session cookie. Every mutation sends the CSRF token in `x-csrf-token`.
 - `GET /api/auth/session` returns the signed-in user or `null`, plus a CSRF token.
-- `GET /api/drive/overview` returns all-drive file and folder counts, smart category counts, and the eight newest file or folder creation events.
+- `GET /api/drive/overview` returns all-drive file and folder counts, smart category counts, and the eight newest activity events.
+- `GET /api/drive/activity?page=&q=&action=&targetType=` returns activity events with search, filters, and pagination. Each event includes its action, target, available flag, and action-specific details.
+- `DELETE /api/drive/activity/:id` clears one event. `DELETE /api/drive/activity` clears all events for the signed-in user. Both return `204`.
 - `GET /api/drive?page=&folderPage=` returns top-level files and folders with separate pagination.
-- `GET /api/drive/categories/:category?page=` returns one type category across the whole drive. Categories are `photos`, `documents`, `text`, and `other`.
+- `GET /api/drive/categories/:category?page=` returns one type category across the whole drive. Categories are `photos`, `documents`, and `other`.
+- `GET /api/drive/folders/:id?page=&folderPage=` returns one folder, its files and subfolders, separate pagination, and breadcrumbs.
+- `GET /api/search?q=&page=` returns matching folder and file names with their parent path and pagination. A blank query returns no results.
 - `PATCH /api/auth/email` requires `email` and `currentPassword`. A duplicate email returns `409` with the `email` field.
 - `PATCH /api/auth/password` requires `currentPassword`, `newPassword`, and `confirmPassword`. It keeps the current session and deletes the user's other sessions.
+- `GET/POST /api/folders/:id/shares` lists or creates folder share links. `DELETE /api/folders/:id/shares/:shareId` revokes one link.
+- `GET /api/public/shares/:token` and `/folders/:folderId` return shared contents without owner, ancestor, or storage data.
+- `GET /api/public/shares/:token/files/:fileId/preview` and `/download` serve shared files inline or as attachments.
 - Account changes return the updated session `{ user, csrfToken }`. A wrong current password returns `401` with the `currentPassword` field.
 - Validated request fields are available as `req.validated`. Registration also requires `confirmPassword`.
 - JSON and binary errors use `no-store` and `nosniff`.
@@ -208,21 +227,43 @@ Client:
 - Folder and file listings show 20 items per page. The API uses `page` for files
   and `folderPage` for folders.
 - Smart categories are read-only, whole-drive views. Photos match `image/*`,
-  Documents match PDF, Text matches `text/*`, and Other is the rest.
+  Documents match PDF and `text/*`, and Other is the rest.
 - The overview hides Other while its count is zero. Category pages still accept
   an empty `other` list.
-- Recent activity is derived from file and folder `createdAt` values. It shows
-  creations only; renames, moves, and deletions have no activity history.
-- The dashboard routes are `/drive`, `/drive/files`, `/drive/folders`,
-  `/drive/categories/:categoryId`, `/drive/files/:fileId`,
-  `/drive/folders/:folderId`, and `/drive/settings`.
+- Activity is stored in `Activity` rows, not derived from `createdAt`. Events
+  cover uploads, folder creation, renames, moves, deletes, share create/revoke,
+  email changes, and password changes. Passwords are never stored.
+- Activity rows keep a target snapshot and do not reference `File` or `Folder`,
+  so history survives deletion. The API marks whether the target still exists.
+- Folder deletion records one folder event; its descendant history stays.
+- The overview shows the eight newest events. The activity page shows 20 per
+  page. Activity can be searched by text and filtered by action and target type.
+  Clearing one event or all history never deletes files or folders.
+- The dashboard routes are `/drive`, `/drive/activity`, `/drive/files`,
+  `/drive/folders`, `/drive/categories/:categoryId`, `/drive/files/:fileId`,
+  `/drive/folders/:folderId`, `/drive/search`, and `/drive/settings`.
+- Uploads use an XMLHttpRequest helper for one batch progress bar. The upload
+  dialog cannot close until the request finishes.
+- Detail pages own rename, move, delete, share, upload, and new-folder actions.
+  List rows do not add action menus.
+- The search form appears in the desktop sidebar and as a mobile header link.
+  Search matches file and folder names across the whole drive.
+- Folder share management lives on the folder detail page. Public share routes
+  are `/share/:token` and `/share/:token/folders/:folderId` outside auth.
+- Public shares show the shared folder as the first breadcrumb, hide ancestors
+  and owner data, preview files in a dialog, and allow downloads. Public pages
+  also set `noindex, nofollow` and `no-referrer` metadata.
 - Files and Folders pages list top-level items only. Nested items appear inside
   folder pages, recent activity, and smart categories.
 - Public share links use random UUID tokens, expire after 1-365 days, and can be
   revoked. Expired, revoked, and unknown links all return the same 404.
+- Mobile headers use an avatar profile menu with the signed-in email and sign
+  out. The desktop sidebar keeps its account panel.
 - Share links may point at nested folders and include descendants, but never
   root files.
-- Previews are inline and limited to images, PDF, and plain text.
+- Previews are inline and limited to images, PDF, and plain text. PDF pages
+  render with PDF.js in the client; unsupported or damaged PDFs show a download
+  fallback.
 - ESLint 10 tracks JSX references natively, so no React lint plugin is needed.
 - `api/tests/` uses feature names for HTTP behavior: `auth.test.js`,
   `drive.test.js`, `files.test.js`, `folders.test.js`, `search-share.test.js`,
