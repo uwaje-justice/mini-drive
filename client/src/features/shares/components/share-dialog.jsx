@@ -10,7 +10,7 @@ import FormAlert from "@/components/ui/form-alert.jsx";
 import FormSuccess from "@/components/ui/form-success.jsx";
 import Modal from "@/components/ui/modal.jsx";
 import applyApiError from "@/features/auth/apply-api-error.js";
-import { formatDate } from "@/features/drive/format.js";
+import { formatDateTime } from "@/features/drive/format.js";
 import useCreateShare from "@/features/shares/hooks/use-create-share.js";
 import useFolderShares from "@/features/shares/hooks/use-folder-shares.js";
 import useRevokeShare from "@/features/shares/hooks/use-revoke-share.js";
@@ -230,7 +230,10 @@ const ShareDialog = ({ open, folder, onClose }) => {
                         ) : null}
                       </span>
                       <span className="text-xs text-on-surface-variant">
-                        Expires {formatDate(link.expiresAt)}
+                        Expires{" "}
+                        <time dateTime={link.expiresAt}>
+                          {formatDateTime(link.expiresAt)}
+                        </time>
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-1">

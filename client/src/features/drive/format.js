@@ -23,5 +23,15 @@ export const formatDate = (value) =>
     year: "numeric",
   }).format(new Date(value));
 
+export const formatDateTime = (value) =>
+  new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(value));
+
 export const formatCount = (count, singular, plural = `${singular}s`) =>
   `${number(count)} ${count === 1 ? singular : plural}`;

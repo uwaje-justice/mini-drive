@@ -20,7 +20,7 @@ import FileList from "@/features/drive/components/file-list.jsx";
 import FolderBreadcrumbs from "@/features/drive/components/folder-breadcrumbs.jsx";
 import FolderList from "@/features/drive/components/folder-list.jsx";
 import PaginationControls from "@/features/drive/components/pagination-controls.jsx";
-import { formatCount, formatDate } from "@/features/drive/format.js";
+import { formatCount, formatDateTime } from "@/features/drive/format.js";
 import { readPageParam } from "@/features/drive/params.js";
 import PublicFilePreview from "@/features/shares/components/public-file-preview.jsx";
 import usePublicShare from "@/features/shares/hooks/use-public-share.js";
@@ -103,9 +103,12 @@ const PublicSharePage = () => {
                     {folder.name}
                   </h1>
                   <p className="mt-1 text-sm text-on-surface-variant">
-                    This link expires on {formatDate(data.share.expiresAt)}.
-                    Anyone with the link can view, preview, and download these
-                    files.
+                    This link expires on{" "}
+                    <time dateTime={data.share.expiresAt}>
+                      {formatDateTime(data.share.expiresAt)}
+                    </time>
+                    . Anyone with the link can view, preview, and download
+                    these files.
                   </p>
                 </div>
               </div>
