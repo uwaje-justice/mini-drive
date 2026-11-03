@@ -35,7 +35,9 @@ const ActivityPage = () => {
   const clearItem = useClearActivityItem();
   const clearAllActivity = useClearActivity();
   const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const [clearTarget, setClearTarget] = useState(null);
   const [clearAllError, setClearAllError] = useState("");
+  const [clearItemError, setClearItemError] = useState("");
   const total = activity.data?.pagination.total ?? 0;
 
   const changePage = (nextPage) => {
@@ -65,9 +67,21 @@ const ActivityPage = () => {
 
   const clearFilters = () => setSearchParams(new URLSearchParams());
 
-  const clearOne = (activityId) => {
+  const requestClearItem = (item) => {
     clearItem.reset();
-    clearItem.mutate(activityId);
+    setClearItemError("");
+    setClearTarget(item);
+  };
+
+  const confirmClearItem = async () => {
+    setClearItemError("");
+
+    try {
+      await clearItem.mutateAsync(clearTarget.id);
+      setClearTarget(null);
+    } catch (error) {
+      setClearItemError(error.message);
+    }
   };
 
   const confirmClear = async () => {
@@ -146,12 +160,6 @@ const ActivityPage = () => {
           onClear={clearFilters}
         />
 
-        {clearItem.isError ? (
-          <div className="px-4 pt-4 sm:px-5">
-            <FormAlert>{clearItem.error.message}</FormAlert>
-          </div>
-        ) : null}
-
         {activity.isPending ? <DriveLoading /> : null}
 
         {activity.isError ? (
@@ -175,7 +183,7 @@ const ActivityPage = () => {
           <>
             <ActivityList
               activity={activity.data.activity}
-              onClear={clearOne}
+              onClear={requestClearItem}
               clearingId={clearItem.isPending ? clearItem.variables : null}
               emptyTitle={
                 hasFilters ? "No matching activity." : "No activity yet."
@@ -196,10 +204,31 @@ const ActivityPage = () => {
       </DrivePanel>
 
       <ConfirmDialog
+        open={Boolean(clearTarget)}
+        title="Clear this activity?"
+        description={
+          clearTarget
+            ? `This removes the "${clearTarget.targetName}" history entry. Files and folders are not deleted.`
+            : "This removes only this history entry. Files and folders are not deleted."
+        }
+        confirmLabel="Clear activity"
+        isPending={clearItem.isPending}
+        onConfirm={confirmClearItem}
+        onClose={() => {
+          if (clearItem.isPending) return;
+          setClearTarget(null);
+          setClearItemError("");
+        }}
+      >
+        {clearItemError ? <FormAlert>{clearItemError}</FormAlert> : null}
+      </ConfirmDialog>
+
+      <ConfirmDialog
         open={confirmClearAll}
         title="Clear all activity?"
         description="This removes all activity history for your account. Files and folders are not deleted."
         confirmLabel="Clear all activity"
+        acknowledgement="I understand this removes all activity history."
         isPending={clearAllActivity.isPending}
         onConfirm={confirmClear}
         onClose={() => {

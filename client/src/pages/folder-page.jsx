@@ -340,6 +340,7 @@ const FolderPage = () => {
             : "This folder and everything inside it will be deleted. This cannot be undone."
         }
         confirmLabel="Delete folder"
+        requireText={folder?.name}
         isPending={deleteFolder.isPending}
         onConfirm={confirmDelete}
         onClose={() => setDialog(null)}

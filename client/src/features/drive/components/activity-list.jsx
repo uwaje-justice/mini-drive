@@ -144,7 +144,7 @@ const ActivityList = ({
               <button
                 type="button"
                 className={clearButtonClass}
-                onClick={() => onClear(item.id)}
+                onClick={() => onClear(item)}
                 disabled={clearingId !== null}
                 aria-label={`Clear activity for ${item.targetName}`}
                 title="Clear activity"

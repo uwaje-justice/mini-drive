@@ -246,6 +246,7 @@ const FilePage = () => {
             : "This file will be removed. This cannot be undone."
         }
         confirmLabel="Delete file"
+        requireText={file?.name}
         isPending={deleteFile.isPending}
         onConfirm={confirmDelete}
         onClose={() => setDialog(null)}

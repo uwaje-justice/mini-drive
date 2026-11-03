@@ -273,6 +273,7 @@ const ShareDialog = ({ open, folder, onClose }) => {
         title="Revoke share link?"
         description="Anyone using this link will lose access immediately."
         confirmLabel="Revoke link"
+        acknowledgement="I understand this link will stop working immediately."
         isPending={revokeShare.isPending}
         onConfirm={confirmRevoke}
         onClose={() => {
